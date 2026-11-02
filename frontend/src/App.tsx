@@ -26,7 +26,7 @@ import {
 import { api, post, setCsrf, useApi } from './api'
 import type { LocationResult, Property, Session } from './types'
 import { WorkspaceContext } from './context'
-import { Chip, date, ErrorState, Loading } from './components/ui'
+import { Chip, date, ErrorState, Loading, Notice } from './components/ui'
 import { AuthPage, LandingPage } from './pages/Auth'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -364,6 +364,13 @@ function WorkspaceApp() {
                 </Chip>
               </div>
               {buildings.error && <ErrorState error={buildings.error} retry={buildings.reload} />}
+              {property?.measurement_status === 'planning_assumptions' && (
+                <Notice tone="warning" title="Planning assumptions active">
+                  Roof size, collection parameters, tank levels and demand for {property.name} are
+                  illustrative assumptions. Weather is a provider forecast. Verify the physical inputs
+                  before making installation decisions.
+                </Notice>
+              )}
               <Suspense fallback={<Loading text="Opening water intelligence…" />}>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />

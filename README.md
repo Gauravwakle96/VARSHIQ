@@ -21,6 +21,8 @@ The application starts with **zero properties and zero measurements**. The inten
 
 The source-status page identifies unavailable/deferred providers and modules. SWMM, Earth Engine/geemap, solar/pvlib and cool-roof features are future extensions, not completed modules.
 
+Owners without measurements can explicitly configure **planning assumptions** on an existing property. The private workspace then combines its coordinate-specific live forecast with illustrative roof, tank and demand inputs. The workspace, WaterTwin, assistant and recommendations disclose that basis. Planning inputs do not create rooftop or water-measurement records and do not establish field verification. Replace the assumptions with actual site inputs before making installation decisions.
+
 - Licensed official Maharashtra district directory, explicit-submit Photon/OSM address/locality search, GPS/manual coordinates and location-specific weather previews.
 - Actual supply and consumption interval ledgers, maintenance/readiness checklists and water-quality test history.
 - Exact budget-constrained selection of quoted storage upgrades using historical incremental water supplied. One upgrade per property; no synthetic budget-training model.

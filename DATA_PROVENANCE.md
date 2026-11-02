@@ -10,6 +10,7 @@ VARSHIQ keeps source data, user measurements and model results separate. A missi
 | Historical reanalysis | Model-assimilated regional weather reconstruction | ERA5 provider/model, daily date coverage and 0.25° regional resolution; separate from IMD/gauge observations |
 | Historical gridded observation | Approved IMD regional rainfall grid | IMD source, nearest grid cell, date coverage and 0.25° resolution; separate dataset conditions |
 | User-entered information | Owner-supplied catchment, demand, tank or coefficient assumption | Responsible user, input/source, recording time and explicit estimate status |
+| Planning assumption | An explicitly authorised illustrative input where site measurements are unavailable | `planning_assumptions` property status, configuration provenance and audit basis; never inserted as roof or water measurement evidence |
 | Geospatial estimate | OSM/Microsoft/manual geometry and derived footprint area | Source identifier/URI, CRS EPSG:4326, acquisition time and geodesic method |
 | Owner-recorded field evidence | A supplied measurement method, date and evidence note | `field_verified` is owner-recorded evidence, not independent engineering certification |
 | Deterministic model estimate | Runoff, diversion, storage, supply, overflow or sizing result | Input/forecast snapshots, calculation assumptions and limitations; never inserted as an actual observation |
@@ -63,6 +64,8 @@ No aquifer record is inferred or fabricated. Source coverage, resolution, date, 
 ## Reports and locality totals
 
 Reports retain property/calculation provenance and explicitly disclose missing or superseded evidence. Locality forecast totals must compare compatible future intervals and current property inputs, with excluded/missing property coverage stated. Aggregation contains genuine registered records only.
+
+An owner-authorised private planning scenario uses real property coordinates and provider forecasts while disclosing assumed catchment, collection, storage and demand inputs. Such catchments are excluded from verified rooftop totals. Forecast/model snapshots may be saved as predictions; assumed rainfall, collection or storage observations are never created. Account credentials, home coordinates and the local property database remain outside source control.
 
 ## Optional AI
 

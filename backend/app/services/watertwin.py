@@ -83,6 +83,9 @@ async def run_twin(db, prop, days=7, capacity_l=None, daily_demand_l=None, persi
     )
     assumptions = {
         **inputs,
+        "input_basis": "planning_assumptions"
+        if prop.measurement_status == "planning_assumptions"
+        else "owner_entered",
         "coefficient_source": prop.coefficient_source,
         "roof_material": prop.roof_material,
         "starting_storage_l": prop.current_storage_l,
@@ -114,6 +117,18 @@ async def run_twin(db, prop, days=7, capacity_l=None, daily_demand_l=None, persi
     }
     if prop.measurement_status != "field_verified":
         confidence["missing_information"].append("Field-verified connected catchment area")
+    if prop.measurement_status == "planning_assumptions":
+        confidence["calculation_kind"] = "forecast_with_planning_assumptions"
+        confidence["missing_information"].extend(
+            [
+                "Measured tank capacity and starting storage",
+                "Measured water demand",
+                "Site-specific collection parameters",
+            ]
+        )
+        confidence["limitations"].append(
+            "Roof, collection, tank and demand inputs are illustrative planning assumptions, not field measurements."
+        )
     if instant - utc(prop.storage_measured_at) > timedelta(hours=24):
         confidence["missing_information"].append(
             "A recent tank reading; entered storage is older than 24 hours"

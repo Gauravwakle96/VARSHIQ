@@ -81,6 +81,10 @@ class PropertyCreate(Schema):
 
 
 class PropertyPatch(Schema):
+    planning_assumptions: bool = Field(
+        default=False,
+        description="Explicitly treat model inputs as illustrative assumptions, without creating roof measurements.",
+    )
     name: str | None = None
     property_type: Literal["residential", "commercial", "apartment", "community"] | None = None
     locality: str | None = None

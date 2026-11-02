@@ -123,6 +123,7 @@ function PropertyForm({
       available_space_m2: optionalNumber('available_space_m2'),
       share_aggregate: values.get('share_aggregate') === 'on',
       notes: values.get('notes'),
+      ...(property ? { planning_assumptions: property.measurement_status === 'planning_assumptions' } : {}),
     }
     if (payload.current_storage_l > payload.tank_capacity_l) {
       setError('Current storage cannot exceed tank capacity.')

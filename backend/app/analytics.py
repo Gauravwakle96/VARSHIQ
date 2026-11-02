@@ -480,6 +480,11 @@ async def assistant(body: schemas.Chat, db: Session = Depends(get_db), user=Depe
                     "during tomorrow's simulated hours, with first flush and collection losses accounted for. "
                     "This is expected collection, not measured harvested water."
                 )
+            if prop.measurement_status == "planning_assumptions":
+                answer += (
+                    " Roof area, collection parameters, tank configuration and demand are illustrative planning assumptions. "
+                    "The weather is a real provider forecast; verify the physical inputs before installation decisions."
+                )
         except HTTPException as exc:
             if exc.status_code not in {422, 502, 503}:
                 raise

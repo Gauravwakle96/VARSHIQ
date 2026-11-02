@@ -63,3 +63,18 @@ Executed checks for this addition:
 Evidence is local and ignored under `artifacts/demo/`, `artifacts/browser/` and Playwright result folders. Synthetic provider/error fixtures are restricted to automated tests. Staged review checked 22 files for credential patterns and excluded generated/private data; no findings were reported. Public hosting and the actual authorised field pilot remain outstanding.
 
 The four GitHub Actions jobs (frontend, backend, postgis-migrations and containers) passed on demo implementation commit `0b8da84f29f6877b712eaad07c6ff3dc3623a812`: [executed run](https://github.com/Gauravwakle96/VARSHIQ/actions/runs/41441376090). The subsequent account-creation handoff fix is included in browser verification: the demo's registration link opens the account form and users can switch back to Sign in. This link does not register a property or create an account automatically.
+
+## Private planning assumptions — 2026-11-02
+
+Existing property inputs can be explicitly marked as illustrative planning assumptions without creating roof-measurement records. Ownership and physical validation remain enforced. The private workspace, WaterTwin, sizing, recommendations and both general/tomorrow assistant answers disclose this input basis.
+
+Executed checks for this change:
+
+- Full backend suite: **246 passed**; one existing Starlette/httpx deprecation warning. Eight planning tests cover evidence separation, provenance, persistence, physical validation, cross-owner access, advice/sizing and assistant disclosure. An initial test expected 403 for cross-owner access; it was corrected to the existing 404 non-disclosure contract before the passing run.
+- Backend Ruff application/tests/migrations check and Git whitespace check: passed.
+- Frontend ESLint and production build with TypeScript checking: passed. Frontend npm audit reported zero vulnerabilities; the locked installed Python environment audit reported no known vulnerabilities.
+- All five existing Playwright workflows passed again against an isolated automated-test database.
+- An owner-authorised private property was configured with explicitly assumed model parameters. Its live forecast had 168 hourly/7 daily records, the saved WaterTwin conserved storage, and existing rooftop/water observation counts remained zero. Recommendations stayed preliminary; the deterministic assistant disclosed assumptions. Three tank candidates were compared using 365 actual ERA5 regional reanalysis daily records for 2025, clearly separate from site rainfall measurements.
+- The planning notice was visually inspected with ECC Chrome DevTools at a 390×844 mobile viewport and a narrow desktop window; the settled mobile document width matched its viewport. Private account/location values and browser evidence remain outside Git.
+
+This is planning functionality with real provider data, not a completed field trial or evidence of an installed harvesting system. Public hosting and field verification remain outstanding.

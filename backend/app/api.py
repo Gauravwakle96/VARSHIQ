@@ -281,6 +281,12 @@ def patch_building(
 ):
     prop = authorised_property(db, property_id, user)
     changes = body.model_dump(exclude_unset=True)
+    was_planning = prop.measurement_status == "planning_assumptions"
+    planning = changes.pop("planning_assumptions", was_planning)
+    if planning and changes.get("storage_status") == "measured":
+        raise HTTPException(422, "Planning assumptions cannot be recorded as measured tank readings")
+    if planning:
+        changes["storage_status"] = "estimated"
     current = {name: getattr(prop, name) for name in schemas.PropertyCreate.model_fields}
     try:
         validated = schemas.PropertyCreate.model_validate({**current, **changes})
@@ -302,10 +308,13 @@ def patch_building(
         "geometry",
     }
     roof_changes = {key for key in roof_fields if key in changes and getattr(validated, key) != current[key]}
-    if roof_changes:
+    if roof_changes or planning != was_planning:
         prop.parameters_updated_at = now()
+    if planning:
+        prop.measurement_status = "planning_assumptions"
+    elif roof_changes or was_planning:
         prop.measurement_status = "user_entered" if prop.effective_catchment_m2 else "unverified"
-    if "effective_catchment_m2" in roof_changes:
+    if "effective_catchment_m2" in roof_changes and not planning:
         prop.measurement_status = "user_entered" if prop.effective_catchment_m2 else "unverified"
         if prop.effective_catchment_m2:
             db.add(
@@ -326,16 +335,31 @@ def patch_building(
     if "tank_capacity_l" in changes:
         tank = db.scalar(select(WaterTank).where(WaterTank.property_id == prop.id))
         tank.capacity_l = prop.tank_capacity_l
-        tank.provenance = {"source": "user_entered", "updated_at": now().isoformat()}
+        tank.provenance = {
+            "source": "planning_assumption" if planning else "user_entered",
+            "updated_at": now().isoformat(),
+        }
     if "daily_demand_l" in changes:
         db.add(
             WaterDemand(
                 property_id=prop.id,
                 daily_l=prop.daily_demand_l,
-                provenance={"source": "user_entered", "user_id": user.id},
+                provenance={
+                    "source": "planning_assumption" if planning else "user_entered",
+                    "user_id": user.id,
+                },
             )
         )
-    audit(db, user, "property.update", prop.id, {"fields": sorted(changes)})
+    audit(
+        db,
+        user,
+        "property.update",
+        prop.id,
+        {
+            "fields": sorted(changes),
+            "input_basis": "planning_assumptions" if planning else "owner_entered",
+        },
+    )
     db.commit()
     return ok(property_data(prop))
 
@@ -592,10 +616,20 @@ async def storage_optimise(body: schemas.Optimise, db: Session = Depends(get_db)
             **result,
             "historical": {key: value for key, value in data.items() if key != "daily"},
             "current_capacity_l": prop.tank_capacity_l,
+            "input_basis": "planning_assumptions"
+            if prop.measurement_status == "planning_assumptions"
+            else "owner_entered",
             "limitations": result.get("limitations", [])
             + [
                 "Initial historical storage is assumed empty for all capacities; forecast current storage is not a past observation."
-            ],
+            ]
+            + (
+                [
+                    "Roof, collection, tank and demand inputs are illustrative planning assumptions; verify them before selecting equipment."
+                ]
+                if prop.measurement_status == "planning_assumptions"
+                else []
+            ),
         }
     )
 
