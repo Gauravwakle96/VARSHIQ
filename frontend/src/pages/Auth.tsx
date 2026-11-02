@@ -16,8 +16,11 @@ import { post, setCsrf, useApi } from '../api'
 import type { Community, Session, User } from '../types'
 import { Button, ErrorState, Field, InputError, Loading, Metric, number } from '../components/ui'
 
-export function AuthPage({ onAuthenticated }: { onAuthenticated: () => Promise<void> }) {
-  const [register, setRegister] = useState(false)
+export function AuthPage({ onAuthenticated, initialMode = 'login' }: {
+  onAuthenticated: () => Promise<void>
+  initialMode?: 'login' | 'register'
+}) {
+  const [register, setRegister] = useState(initialMode === 'register')
   const [visible, setVisible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

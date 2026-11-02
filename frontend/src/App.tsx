@@ -201,7 +201,14 @@ function WorkspaceApp() {
         </div>
       </div>
     )
-  if (!user) return <AuthPage onAuthenticated={refreshSession} />
+  if (!user)
+    return (
+      <AuthPage
+        key={location.pathname}
+        initialMode={location.pathname === '/register' ? 'register' : 'login'}
+        onAuthenticated={refreshSession}
+      />
+    )
   return (
     <MotionConfig reducedMotion="user">
       <WorkspaceContext.Provider

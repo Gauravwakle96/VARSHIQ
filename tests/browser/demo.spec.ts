@@ -76,6 +76,11 @@ test('demo real map, core-engine timeline, scenarios and guided purpose work wit
   expect(dry.calculation.net_inflow_l).toBe(0);
   await expect(page.getByText(/No upgrade selected: the current rainfall/)).toBeVisible();
   await expect(page.locator('.demo-result-grid')).toBeVisible();
+  await page.getByRole('link', { name: 'Create your real water picture', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Start with your real property.', exact: true })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Your name', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Welcome to VARSHIQ.', exact: true })).toBeVisible();
 });
 
 test('changing map location clears outlines and changing inputs hides stale simulated tank readings', async ({ page }) => {
