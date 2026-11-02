@@ -57,6 +57,7 @@ export default function ModelPages({ mode }: { mode: 'calculator' | 'twin' | 'op
     property?.timezone,
     property?.effective_catchment_m2,
     property?.measurement_status,
+    property?.roof_area_provenance,
     property?.roof_material,
     property?.runoff_coefficient,
     property?.coefficient_source,
@@ -109,18 +110,18 @@ function CalculatorPage() {
   return (
     <>
       <PageTitle
-        eyebrow="DETERMINISTIC RAINWATER ENGINE"
-        title="A calculation you can inspect."
-        description="Assess one user-defined rainfall event. Use WaterTwin to connect real forecasts and tank demand."
+        eyebrow="RAINWATER CALCULATOR"
+        title="How much rainwater could I collect?"
+        description="Enter a rain amount to estimate collection. My water tank uses the real forecast for your property."
       />
       <div className="two-column">
         <Section
-          title="Event inputs"
-          subtitle="These scenario inputs are user supplied, not rainfall observations."
+          title="Roof size and rainfall"
+          subtitle="These are values you enter to try a calculation, not measured rainfall."
         >
           <form onSubmit={calculate} className="form-stack">
             <div className="form-grid">
-              <Field label="Effective catchment (m²)">
+              <Field label="Roof area for collection (m²)">
                 <input
                   name="area_m2"
                   required
@@ -130,7 +131,7 @@ function CalculatorPage() {
                   defaultValue={property?.effective_catchment_m2 ?? ''}
                 />
               </Field>
-              <Field label="Event precipitation (mm)">
+              <Field label="Rainfall amount (mm)">
                 <input
                   name="rainfall_mm"
                   required
@@ -140,7 +141,7 @@ function CalculatorPage() {
                   placeholder="Enter an event rainfall amount"
                 />
               </Field>
-              <Field label="Runoff coefficient (0–1)">
+              <Field label="Roof runoff factor (0–1)" hint="For example, 0.8 counts 80% of rain as roof runoff. Use a documented site value.">
                 <input
                   name="runoff_coefficient"
                   required
@@ -151,7 +152,7 @@ function CalculatorPage() {
                   defaultValue={property?.runoff_coefficient ?? ''}
                 />
               </Field>
-              <Field label="First-flush depth (mm)">
+              <Field label="First rain diverted (mm)" hint="The initial runoff sent away to help clear roof dirt, once per rain event.">
                 <input
                   name="first_flush_mm"
                   required
@@ -161,7 +162,7 @@ function CalculatorPage() {
                   defaultValue={property?.first_flush_mm ?? 0}
                 />
               </Field>
-              <Field label="Collection efficiency (0–1)">
+              <Field label="Filter and pipe efficiency (0–1)" hint="For example, 0.9 keeps 90% after the first rain is diverted.">
                 <input
                   name="collection_efficiency"
                   required
@@ -240,7 +241,7 @@ function CalculatorPage() {
             label="Net harvestable inflow"
             value={number(data.net_inflow_l)}
             unit="L"
-            detail="Scenario estimate before tank overflow"
+            detail="Estimate before tank overflow"
             tone="teal"
           />
         </div>
@@ -344,7 +345,7 @@ function TwinPage() {
           daily_demand_l: Number(values.get('daily_demand_l')),
         }),
       )
-      notify('What-if scenario calculated. Registered measurements and saved WaterTwin remain unchanged.')
+      notify('Comparison ready. Your saved property details have not changed.')
     } catch (error) {
       setScenarioError((error as Error).message)
     } finally {
@@ -366,18 +367,18 @@ function TwinPage() {
   return (
     <>
       <PageTitle
-        eyebrow="SIGNATURE WATER INTELLIGENCE"
-        title="Your building’s WaterTwin."
-        description={`${property?.name} · Forecast → rainfall event → runoff → tank → demand → overflow.`}
+        eyebrow="VARSHIQ WATERTWIN"
+        title="Will my tank have enough water?"
+        description={`${property?.name} · See how forecast rain could fill your tank after daily water use.`}
         action={
           <Button loading={busy} onClick={run}>
             <Play size={16} />
-            {twin ? 'Update WaterTwin' : 'Run WaterTwin'}
+            {twin ? 'Update my forecast' : 'Show my water forecast'}
           </Button>
         }
       />
       <div className="filter-bar">
-        <Field label="Forecast simulation window">
+        <Field label="How far ahead?">
           <select
             value={days}
             onChange={(event) => {
@@ -394,7 +395,7 @@ function TwinPage() {
           </select>
         </Field>
         <Link to="/property" className="text-link">
-          Review property inputs
+          Edit roof, tank and water use
           <ArrowRight size={15} />
         </Link>
       </div>
@@ -485,13 +486,15 @@ function TwinPage() {
               detail={`${number(simulation.water_supplied_l)} L supplied · ${number(simulation.unmet_demand_l)} L unmet`}
             />
           </div>
+          <details className="friendly-details twin-comparison">
+            <summary>Try another tank size or daily water use</summary>
           <Section
             title="What if the tank or demand changed?"
-            subtitle="A separately labelled scenario; registered inputs and observations are preserved."
+            subtitle="Try different values without changing your saved property details."
             className="scenario-label"
           >
             <form onSubmit={runScenario} className="filter-bar">
-              <Field label="Scenario tank capacity (L)">
+              <Field label="Try a tank capacity (L)">
                 <input
                   name="capacity_l"
                   type="number"
@@ -501,7 +504,7 @@ function TwinPage() {
                   defaultValue={property?.tank_capacity_l}
                 />
               </Field>
-              <Field label="Scenario demand (L/day)">
+              <Field label="Try daily water use (L/day)">
                 <input
                   name="daily_demand_l"
                   type="number"
@@ -513,15 +516,15 @@ function TwinPage() {
               </Field>
               <Button loading={scenarioBusy} type="submit">
                 <SlidersHorizontal size={16} />
-                Calculate scenario
+                Compare these settings
               </Button>
             </form>
             <InputError error={scenarioError} />
             {scenario && (
               <div className="scenario-result">
                 {snapshotStale(scenario) && (
-                  <Notice title="Stale forecast scenario" tone="warning">
-                    This what-if result uses a stale forecast. Refresh WaterTwin and rerun the scenario before
+                  <Notice title="This comparison needs fresh weather data" tone="warning">
+                    This what-if result uses a stale forecast. Refresh WaterTwin and try these settings again before
                     using it for preparation.
                   </Notice>
                 )}
@@ -532,22 +535,22 @@ function TwinPage() {
                 </Chip>
                 <div className="metrics-grid three" style={{ marginTop: 16 }}>
                   <Metric
-                    label="Scenario ending storage"
+                    label="Water left with these settings"
                     value={number(scenario.calculation.final_storage_l)}
                     unit="L"
                     detail={`Candidate capacity ${number(scenario.calculation.capacity_l)} L`}
                   />
                   <Metric
-                    label="Scenario overflow"
+                    label="Overflow with these settings"
                     value={number(scenario.calculation.overflow_l)}
                     unit="L"
                     detail="Compare with the registered-input result above"
                   />
                   <Metric
-                    label="Scenario unmet demand"
+                    label="Water shortfall with these settings"
                     value={number(scenario.calculation.unmet_demand_l)}
                     unit="L"
-                    detail="Under the user-entered scenario demand"
+                    detail="Based on the daily water use you entered"
                   />
                 </div>
                 <WeatherAttribution
@@ -555,7 +558,7 @@ function TwinPage() {
                   attribution={scenario.forecast.attribution}
                 />
                 <Evidence
-                  title="Scenario forecast and assumptions"
+                  title="Forecast and settings for this comparison"
                   value={{
                     retrieved_at: scenario.forecast.retrieved_at,
                     assumptions: scenario.assumptions,
@@ -565,6 +568,7 @@ function TwinPage() {
               </div>
             )}
           </Section>
+          </details>
           <Section
             title="Forecast storage trajectory"
             subtitle="Starting from the recorded storage input; consumption is limited by water available."
@@ -860,17 +864,17 @@ function OptimiserPage() {
     <>
       <PageTitle
         eyebrow="SMART STORAGE OPTIMISATION"
-        title="Find the capacity that earns its space."
+        title="Which tank size works for me?"
         description={`${property?.name} · Compare tanks under the same real historical rainfall and demand assumptions.`}
       />
       <Section
-        title="Capacity scenarios"
-        subtitle="Choose candidate sizes and an actual historical rainfall period."
+        title="Tank sizes to compare"
+        subtitle="Compare a smaller tank, your current tank and a larger one using past rainfall."
       >
         <form onSubmit={optimise} className="form-stack">
           <div className="form-grid three">
             <Field
-              label="Candidate capacities (L)"
+              label="Tank sizes (L)"
               hint="Comma-separated alternatives; include your current tank to compare."
             >
               <input

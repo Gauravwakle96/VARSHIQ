@@ -55,12 +55,26 @@ export default function MapPage() {
   const [vertices, setVertices] = useState<Point[]>([])
   const [manualGeometry, setManualGeometry] = useState<Geometry | null>(null)
   const [area, setArea] = useState<number | null>(null)
+  const [outlineConfirmed, setOutlineConfirmed] = useState(false)
+  const [connectedFraction, setConnectedFraction] = useState(1)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const settings = useApi<{ pilot_locality: string; pilot_latitude: number; pilot_longitude: number }>(
     !property ? '/admin/settings' : null,
   )
   const navigate = useNavigate()
+  useEffect(() => {
+    setOutlineConfirmed(false)
+    setConnectedFraction(1)
+    if (!candidate) return
+    const controller = new AbortController()
+    setArea(null)
+    api<{ area_m2: number }>('/buildings/geometry', {
+      method: 'POST', body: JSON.stringify({ geometry: candidate.geometry }), signal: controller.signal,
+    }).then(result => { if (!controller.signal.aborted) setArea(result.area_m2) })
+      .catch(error => { if (!controller.signal.aborted) setError((error as Error).message) })
+    return () => controller.abort()
+  }, [candidate, manualGeometry])
   useEffect(() => {
     if (activeLocation) setPoint({ latitude: activeLocation.latitude, longitude: activeLocation.longitude })
     else if (!property && settings.data)
@@ -117,6 +131,7 @@ export default function MapPage() {
         selection: {
           ...point,
           ...(geometry ? { geometry } : {}),
+          estimate_roof: Boolean(geometry),
           geometry_source: candidate ? provider : 'manual',
           geometry_source_id: candidate
             ? String(candidate.id ?? candidate.properties.source_id ?? candidate.properties.id ?? '')
@@ -126,9 +141,18 @@ export default function MapPage() {
       },
     })
   }
+  function chooseBuilding(feature: Feature) {
+    setCandidate(feature)
+    setManualGeometry(null)
+    setArea(null)
+    const coordinate = feature.geometry.type === 'Polygon'
+      ? (feature.geometry.coordinates as number[][][])[0]?.[0]
+      : (feature.geometry.coordinates as number[][][][])[0]?.[0]?.[0]
+    if (coordinate) setPoint({ longitude: coordinate[0], latitude: coordinate[1] })
+  }
   async function updateCurrentProperty() {
     const geometry = candidate?.geometry ?? manualGeometry
-    if (!property || !geometry) return
+    if (!property || !geometry || !outlineConfirmed) return
     setBusy(true)
     setError(null)
     try {
@@ -140,11 +164,13 @@ export default function MapPage() {
         geometry_source_id: candidate
           ? String(candidate.id ?? candidate.properties.source_id ?? candidate.properties.id ?? '')
           : '',
+        roof_map_estimate: { confirmed: true, connected_fraction: connectedFraction },
       })
       refreshProperties()
       notify(
-        'Building geometry corrected. Recheck its relationship to the recorded rooftop catchment measurement.',
+        'Roof area saved as a user-confirmed map estimate. Other property inputs are preserved.',
       )
+      navigate('/property')
     } catch (error) {
       setError((error as Error).message)
     } finally {
@@ -212,17 +238,7 @@ export default function MapPage() {
                 setCandidate(null)
               }
             }}
-            onFeature={(feature) => {
-              setCandidate(feature)
-              setManualGeometry(null)
-              setArea(null)
-              const rings = feature.geometry.coordinates as number[][][]
-              const coordinate =
-                feature.geometry.type === 'Polygon'
-                  ? rings[0]?.[0]
-                  : (feature.geometry.coordinates as number[][][][])[0]?.[0]?.[0]
-              if (coordinate) setPoint({ longitude: coordinate[0], latitude: coordinate[1] })
-            }}
+            onFeature={chooseBuilding}
             onProperty={(item) => {
               selectProperty(item.id)
               navigate('/property')
@@ -354,6 +370,15 @@ export default function MapPage() {
             </div>
           </Section>
           <Section title="Selected location">
+            {Boolean(lookup?.features.length) && <Field label="Choose a building outline">
+              <select value={candidate ? String(lookup?.features.indexOf(candidate)) : ''}
+                onChange={event => { const feature = lookup?.features[Number(event.target.value)]; if (feature) chooseBuilding(feature) }}>
+                <option value="" disabled>Select on the map or choose here</option>
+                {lookup?.features.map((feature, index) => <option value={index} key={String(feature.id ?? index)}>
+                  {String(feature.properties.name ?? `Building ${feature.id ?? index + 1}`)}
+                </option>)}
+              </select>
+            </Field>}
             <div className="selected-location">
               <MapPin size={21} />
               <div>
@@ -367,12 +392,13 @@ export default function MapPage() {
               <div className="selected-footprint">
                 <Chip tone="green">Provider footprint selected</Chip>
                 <strong>{String(candidate.properties.name ?? 'Building footprint')}</strong>
+                <p>{area == null ? 'Measuring this outline…' : `${number(area, 1)} m² map-estimated area`}</p>
                 <Evidence title="Source attributes" value={candidate.properties} />
               </div>
             )}
             <Button className="full-width" disabled={drawing} onClick={register}>
               <Building2 size={16} />
-              Register this property
+              {candidate || manualGeometry ? 'Continue with roof estimate' : 'Register this property'}
               <ArrowRight size={16} />
             </Button>
           </Section>
@@ -380,18 +406,30 @@ export default function MapPage() {
       </div>
       {property && (candidate || manualGeometry) && !drawing && (
         <Section
-          title="Correct an existing building geometry"
-          subtitle={`Apply this selected polygon to ${property.name} (${property.property_code}). Rooftop measurements remain separately documented.`}
+          title="Does this outline match your roof?"
+          subtitle={`Save the selected outline and its estimated area for ${property.name}. This does not verify a physical roof measurement.`}
         >
-          <Button variant="secondary" loading={busy} onClick={updateCurrentProperty}>
+          <label className="roof-outline-confirm">
+            <input type="checkbox" checked={outlineConfirmed} onChange={event => setOutlineConfirmed(event.target.checked)} />
+            <span>This is my building and the outline looks correct</span>
+          </label>
+          <details className="friendly-details">
+            <summary>Only part of the roof collects rain</summary>
+            <Field label="Roof area connected (%)" hint="100% assumes the whole outline drains to collection. Reduce it if only part is connected.">
+              <input type="number" min={1} max={100} value={connectedFraction * 100}
+                onChange={event => { setConnectedFraction(Number(event.target.value) / 100); setOutlineConfirmed(false) }} />
+            </Field>
+          </details>
+          <Button variant="primary" loading={busy} disabled={!outlineConfirmed || connectedFraction <= 0 || connectedFraction > 1 || area == null} onClick={updateCurrentProperty}>
             <Pencil size={16} />
-            Use selected geometry for {property.name}
+            Use this estimate for my property
           </Button>
+          <InputError error={error} />
         </Section>
       )}
-      <Notice title="Verify the roof onsite" tone="warning">
-        The configured pilot map centre is not a registered property. Map geometry estimates building
-        footprint; measure the area connected to harvesting before claiming a verified catchment.
+      <Notice title="Start with an estimate" tone="info">
+        Select your building and confirm its outline. You can refine the connected roof area later;
+        map confirmation is separate from a field measurement.
       </Notice>
       {lookup && (
         <Evidence

@@ -346,7 +346,7 @@ function HistoricalPage() {
       <PageTitle
         eyebrow="HISTORICAL RAINFALL"
         title="Understand the rainfall seasons."
-        description={`${activeLocation?.display_name ?? property?.name} · Regional history for context and storage scenarios; separate from live forecasts.`}
+        description={`${activeLocation?.display_name ?? property?.name} · Regional history for context and tank comparisons; separate from live forecasts.`}
       />
       {activeLocation && (
         <Notice title="Unregistered location preview">

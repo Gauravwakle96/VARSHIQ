@@ -78,7 +78,7 @@ export const previewFeatures: PreviewFeature[] = [
     purpose: 'Connect rain, collection, demand and overflow in one water picture.',
     benefit: 'Property owners can see the impact of their assumptions before measuring the site.',
     liveNeeds:
-      'Actual registered properties, measured inputs and current provider forecasts. These are fictional scenario totals.',
+      'Actual registered properties, measured inputs and current provider forecasts. These are fictional example totals.',
   },
   {
     path: '/map',
@@ -190,7 +190,7 @@ export const previewFeatures: PreviewFeature[] = [
     path: '/community',
     name: 'Locality network',
     group: 'Field & community',
-    purpose: 'Compare a small fictional group of buildings under the same scenario.',
+    purpose: 'Compare a small fictional group of buildings under the same example.',
     benefit: 'Societies can understand shared harvesting potential and storage deficiencies.',
     liveNeeds: 'Genuine registered records, compatible forecast windows and explicit sharing permissions.',
   },
@@ -215,7 +215,7 @@ export const previewFeatures: PreviewFeature[] = [
     path: '/assistant',
     name: 'Water assistant',
     group: 'Tools',
-    purpose: 'Choose a question and get an explanation from the scenario’s backend results.',
+    purpose: 'Choose a question and get an explanation from the example’s backend results.',
     benefit: 'Owners can understand calculations without requiring a paid language model.',
     liveNeeds:
       'The live assistant retrieves authorised backend facts; AI never supplies engineering numbers.',
@@ -242,7 +242,7 @@ export const previewFeatures: PreviewFeature[] = [
     path: '/settings',
     name: 'Settings',
     group: 'Tools',
-    purpose: 'Change a scenario profile and reset the illustrative inputs.',
+    purpose: 'Change an example profile and reset the illustrative inputs.',
     benefit: 'Owners can understand configurability without changing production settings.',
     liveNeeds:
       'Actual system settings remain role-protected. Preview controls affect only this browser exercise.',

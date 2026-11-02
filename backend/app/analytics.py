@@ -33,7 +33,7 @@ from app.models import (
 from app.security import authorised_property, check_csrf, require_admin, require_user, utc
 from app.serializers import ok, property_data, row_data
 from app.services.evidence import input_fingerprint, roof_parameters
-from app.services.recommendations import latest_recommendation
+from app.services.recommendations import generate, latest_recommendation
 from app.services.watertwin import run_twin
 
 router = APIRouter(prefix="/api/v1")
@@ -490,6 +490,22 @@ async def assistant(body: schemas.Chat, db: Session = Depends(get_db), user=Depe
                 raise
             answer = f"A reliable calculation is unavailable: {exc.detail}. Enter the missing measurements or retry the provider."
             context = {"missing_information": str(exc.detail)}
+        if any(word in body.message.lower() for word in ("improvement", "recommendation", "harvesting")):
+            recommendation = generate(db, prop)
+            context["recommendations"] = recommendation
+            answer = (
+                "For this roof, check that drains and filters are clear, review first-flush equipment, "
+                "and compare tank sizes against past rainfall and your intended non-potable water use. "
+                + recommendation["items"][0]["reason"]
+                + " Installation space, structural capacity and water treatment need site checks; recharge needs professional assessment."
+            )
+            if prop.measurement_status == "planning_assumptions":
+                answer += " Tank, water demand and collection parameters remain illustrative planning assumptions, not field measurements."
+            sources.append({"type": "backend_recommendation", "id": recommendation["id"]})
+        if prop.roof_area_provenance:
+            answer += " The roof area is a user-confirmed map estimate, not a field measurement; connected roof fraction is an assumption."
+            context["roof_area_provenance"] = prop.roof_area_provenance
+            sources.append({"type": "map_area_estimate", **prop.roof_area_provenance})
     else:
         community = aggregate(db, user)
         context = {"community": {key: value for key, value in community.items() if key != "properties"}}

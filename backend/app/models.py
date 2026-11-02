@@ -67,6 +67,7 @@ class Property(Identity, Base):
     geometry_source_uri: Mapped[str | None] = mapped_column(Text, nullable=True)
     footprint_area_m2: Mapped[float | None] = mapped_column(Float, nullable=True)
     effective_catchment_m2: Mapped[float | None] = mapped_column(Float, nullable=True)
+    roof_area_provenance: Mapped[dict] = mapped_column(JSON, default=dict)
     measurement_status: Mapped[str] = mapped_column(String(30), default="unverified")
     roof_material: Mapped[str] = mapped_column(String(20), default="other")
     runoff_coefficient: Mapped[float | None] = mapped_column(Float, nullable=True)

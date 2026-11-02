@@ -14,7 +14,7 @@ test('real API registration, forecast, WaterTwin, report and responsive accessib
   await page.getByLabel(/email/i).fill(`browser-fixture-${Date.now()}@example.com`);
   await page.getByLabel(/^password/i).fill('AUTOMATED-TEST-password-2026');
   await page.getByRole('button', { name: /create.*account|create.*workspace|register/i }).last().click();
-  await expect(page.getByRole('link', { name: 'Overview', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'My overview', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: /Start with a roof/ })).toBeVisible();
   await mkdir('artifacts/browser', { recursive: true });
   await page.screenshot({ path: 'artifacts/browser/desktop-empty.png' });
@@ -32,13 +32,13 @@ test('real API registration, forecast, WaterTwin, report and responsive accessib
     return (await response.json()).data;
   });
   await page.reload();
-  await expect(page.getByRole('heading', { name: /water|overview|workspace|rain/i }).first()).toBeVisible();
-  await page.getByRole('link', { name: 'Rainfall forecast', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /water|overview|workspace|rain|AUTOMATED TEST/i }).first()).toBeVisible();
+  await page.getByRole('link', { name: 'Rain forecast', exact: true }).click();
   await expect(page.getByText('Open-Meteo', { exact: false }).first()).toBeVisible({ timeout: 45000 });
   await expect(page.getByRole('link', { name: 'Weather data by Open-Meteo.com' }).first()).toBeVisible();
   await page.screenshot({ path: 'artifacts/browser/desktop-forecast.png' });
-  await page.getByRole('link', { name: 'WaterTwin', exact: false }).first().click();
-  await page.getByRole('button', { name: 'Run WaterTwin', exact: true }).click();
+  await page.getByRole('link', { name: 'My water tank', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Show my water forecast', exact: true }).click();
   await expect(page.getByText('Forecast harvestable inflow', { exact: true })).toBeVisible({ timeout: 45000 });
   await expect(page.getByText(/Balance residual:/)).toBeVisible();
   await page.screenshot({ path: 'artifacts/browser/desktop-watertwin.png' });
@@ -55,7 +55,7 @@ test('real API registration, forecast, WaterTwin, report and responsive accessib
   await page.getByRole('button', { name: 'Inspect prior snapshot', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Prior snapshot inspection' })).toBeVisible();
   await page.screenshot({ path: 'artifacts/browser/stale-snapshot.png' });
-  await page.getByRole('link', { name: 'Assessment reports', exact: true }).click();
+  await page.getByRole('link', { name: 'My reports', exact: true }).click();
   const reportButton = page.getByRole('button', { name: /generate|create/i }).first();
   await reportButton.click();
   await expect(page.getByRole('link', { name: /pdf/i }).first()).toBeVisible();
@@ -87,7 +87,7 @@ test('UI registration, roof evidence, water ledgers, maintenance and quality per
   await page.getByLabel(/email/i).fill(`ui-fixture-${Date.now()}@example.com`);
   await page.getByLabel(/^password/i).fill('AUTOMATED-TEST-password-2026');
   await page.getByRole('button', { name: /create.*account|create.*workspace|register/i }).last().click();
-  await expect(page.getByRole('link', { name: 'Overview', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'My overview', exact: true })).toBeVisible();
   await page.goto('/#/register');
   await page.locator('[name="name"]').fill('AUTOMATED TEST UI Apartment');
   await page.locator('[name="property_type"]').selectOption('apartment');
@@ -203,7 +203,7 @@ test('UI registration, roof evidence, water ledgers, maintenance and quality per
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'Select location', exact: true })).toBeFocused();
+  await expect(page.getByRole('link', { name: 'My overview', exact: true })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Open navigation', exact: true })).toBeFocused();
   await page.emulateMedia({ reducedMotion: 'reduce' });

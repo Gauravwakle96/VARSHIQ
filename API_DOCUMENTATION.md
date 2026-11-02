@@ -50,6 +50,21 @@ uv run python -m app.cli set-role ACCOUNT_EMAIL municipal
 
 Registration requires `name`, `property_type`, `latitude` and `longitude`. Supported optional modelling fields include `timezone`, geometry/source metadata, `effective_catchment_m2`, roof material, `runoff_coefficient`, `coefficient_source`, `first_flush_mm`, `collection_efficiency`, `tank_capacity_l`, `current_storage_l`, `daily_demand_l`, storage status, installation space, sharing consent and notes. A coefficient needs its disclosed source/assumption. Geometry is a footprint estimate and does not verify catchment. Tank volume cannot exceed capacity. Meaningful geometry/location/roof changes require verification reassessment.
 
+Registration and PATCH also accept an optional `roof_map_estimate`:
+
+```json
+{
+  "roof_map_estimate": {
+    "confirmed": true,
+    "connected_fraction": 0.8
+  }
+}
+```
+
+Registration must include a valid WGS84 Polygon/MultiPolygon; PATCH may use the property's saved outline or a supplied replacement. Coordinates must be consistent with the geometry. `confirmed` must be true and `connected_fraction` must be greater than zero and at most one (default one). Sending a manual `effective_catchment_m2` together with a map estimate is rejected. The server computes ellipsoidal outline area, subtracts holes, applies the connected fraction and validates the derived area; client-submitted derived areas are not accepted.
+
+Responses include `roof_area_provenance` with source/identifier, outline area, fraction, derived area, calculation method, confirming user/time, `field_verified: false` and limitations. A historical `RoofMeasurement` is explicitly classified `map_estimated`; confirmation does not establish field verification. Existing `planning_assumptions` status and other tank/demand/collection inputs are preserved. Manual area/location/geometry corrections and later roof measurement submissions clear superseded map provenance while retaining history. Google Maps is an external visual cross-check; no geometry or area is extracted from Google imagery.
+
 For an existing property's PATCH request, `planning_assumptions: true` marks illustrative model inputs without creating a `RoofMeasurement`. Omission preserves the current planning basis; explicit `false` returns to owner-entered information without granting field verification. Physical validation and object-level permissions still apply. Planning tank inputs must use `storage_status: "estimated"`; requests claiming a measured reading are rejected. WaterTwin, sizing and recommendations expose the input basis, and the assistant discloses assumptions alongside real provider forecasts. Actual observations require separate observation submission with evidence.
 
 ## Rainfall

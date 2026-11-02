@@ -9,6 +9,7 @@ from app.security import utc
 
 def roof_parameters(prop):
     return {
+        **({"roof_area_provenance": prop.roof_area_provenance} if prop.roof_area_provenance else {}),
         "area_m2": prop.effective_catchment_m2,
         "runoff_coefficient": prop.runoff_coefficient,
         "coefficient_source": prop.coefficient_source,

@@ -80,7 +80,26 @@ class PropertyCreate(Schema):
         return self
 
 
+class RoofMapConfirmation(Schema):
+    confirmed: Literal[True]
+    connected_fraction: Annotated[float, Field(gt=0, le=1)] = 1
+
+
+class PropertyRegistration(PropertyCreate):
+    roof_map_estimate: RoofMapConfirmation | None = None
+
+    @model_validator(mode="after")
+    def map_input(self):
+        if self.roof_map_estimate:
+            if not self.geometry:
+                raise ValueError("Select or draw a building outline before using a map estimate")
+            if self.effective_catchment_m2 is not None:
+                raise ValueError("Choose a map estimate or a manually entered roof area")
+        return self
+
+
 class PropertyPatch(Schema):
+    roof_map_estimate: RoofMapConfirmation | None = None
     planning_assumptions: bool = Field(
         default=False,
         description="Explicitly treat model inputs as illustrative assumptions, without creating roof measurements.",

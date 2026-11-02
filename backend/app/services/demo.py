@@ -1,4 +1,4 @@
-"""User-authorised illustrative scenarios. No database, observations or providers.
+"""User-authorised illustrative examples. No database, observations or providers.
 
 Demo inputs intentionally differ from operational records. The physical model
 and investment solver are the same deterministic services used by WaterTwin.
@@ -104,19 +104,19 @@ def demonstration(inputs):
     return {
         "data_kind": "simulated_demonstration",
         "persisted": False,
-        "rainfall_source": "Synthetic 48-hour scenario; no live forecast or historical observation",
+        "rainfall_source": "Synthetic 48-hour example; no live forecast or historical observation",
         "inputs": inputs.model_dump(),
         "calculation": calculation,
         "storage_comparisons": comparisons,
         "community": {**investment, "buildings": buildings, "alternatives": options},
         "assumptions": [
-            "Water-scenario profiles, community buildings, rainfall, readings and costs are illustrative; selected OSM outlines are separate public geography, not verified catchments.",
-            "Rainfall timestamps use a fixed illustrative anchor and are displayed as scenario days/hours.",
+            "Water-example profiles, community buildings, rainfall, readings and costs are illustrative; selected OSM outlines are separate public geography, not verified catchments.",
+            "Rainfall timestamps use a fixed illustrative anchor and are displayed as example days/hours.",
             "First flush is rainfall-equivalent depth × area × coefficient, once per event after a six-hour dry gap.",
             "Collection efficiency applies once after diversion; hourly capture and overflow precede uniform demand.",
             "Storage alternatives and community upgrades start empty for a consistent comparison.",
             "Community selection maximises additional water supplied over these 48 hours; one upgrade per fictional building.",
-            "Sample costs are indicative scenario inputs, not quotations. No annual savings, potable-water or engineering certification is inferred.",
-            "This short scenario illustrates behaviour; operational tank sizing needs appropriate historical rainfall, measurements, costs and site constraints.",
+            "Sample costs are indicative example inputs, not quotations. No annual savings, potable-water or engineering certification is inferred.",
+            "This short example illustrates behaviour; operational tank sizing needs appropriate historical rainfall, measurements, costs and site constraints.",
         ],
     }

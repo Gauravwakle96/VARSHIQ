@@ -185,7 +185,7 @@ export default function DemoPage() {
             </section>
           )}
           <div className="demo-profile-bar">
-            <span>Illustrative scenario</span>
+            <span>Illustrative example</span>
             <div>
               {profiles.map((item) => (
                 <button
@@ -213,7 +213,7 @@ export default function DemoPage() {
           <div className="demo-workbench">
             <DemoMap water={result && water?.key === key ? water.frame : null} />
             <div className="demo-scene-column">
-              <div className="demo-weather-presets" aria-label="Synthetic rainfall scenarios">
+              <div className="demo-weather-presets" aria-label="Synthetic rainfall examples">
                 <button
                   aria-pressed={inputs.weather === 'dry'}
                   onClick={() => setInputs((current) => ({ ...current, weather: 'dry', rainfall_mm: 0 }))}
@@ -257,7 +257,7 @@ export default function DemoPage() {
                   ) : (
                     <>
                       <Droplets size={36} />
-                      <h2>Calculating the scenario</h2>
+                      <h2>Calculating the example</h2>
                       <p>
                         Tracing runoff, diversion, demand and storage. Previous input results are hidden while
                         this updates.
@@ -272,7 +272,7 @@ export default function DemoPage() {
             <div className="demo-section-heading">
               <div>
                 <span className="eyebrow">CHANGE AN ASSUMPTION. SEE WHAT HAPPENS.</span>
-                <h2 id="demo-input-title">Make the scenario your own.</h2>
+                <h2 id="demo-input-title">Make the example your own.</h2>
                 <p>{profile.description} These settings do not verify the selected real building.</p>
               </div>
             </div>
@@ -296,7 +296,7 @@ export default function DemoPage() {
                 onChange={(value) => update('area_m2', value)}
               />
               <Control
-                label="Scenario tank capacity"
+                label="Example tank capacity"
                 value={inputs.capacity_l}
                 min={100}
                 max={50000}
@@ -338,7 +338,7 @@ export default function DemoPage() {
               <div className="demo-result-grid">
                 <Result label="48-hour harvestable inflow" value={calculation.net_inflow_l} unit="L" />
                 <Result label="Potential overflow" value={calculation.overflow_l} unit="L" />
-                <Result label="Demand supplied in scenario" value={calculation.water_supplied_l} unit="L" />
+                <Result label="Demand supplied in example" value={calculation.water_supplied_l} unit="L" />
                 <Result label="Storage at hour 48" value={calculation.final_storage_l} unit="L" />
               </div>
               <div className="demo-balance">
@@ -377,7 +377,7 @@ export default function DemoPage() {
                     ? 'Inspect the overflow route, check filters and compare storage before the event. More capacity still needs a site and cost assessment.'
                     : inputs.rainfall_mm === 0
                       ? 'A dry period draws down starting storage. Plan other authorised water sources for demand the tank cannot supply.'
-                      : 'Check filters and the current tank reading before rain. This scenario does not establish actual water collection.'}
+                      : 'Check filters and the current tank reading before rain. This example does not establish actual water collection.'}
                 </p>
               </section>
               <Storage result={result!} />
@@ -511,7 +511,7 @@ function Storage({ result }: { result: DemoResult }) {
           <span className="eyebrow">STORAGE CHOICES</span>
           <h2>Compare the same rainfall with different tanks.</h2>
           <p>
-            Each alternative starts empty. A 48-hour scenario explains behaviour; it does not replace seasonal
+            Each alternative starts empty. A 48-hour example explains behaviour; it does not replace seasonal
             sizing.
           </p>
         </div>
@@ -524,7 +524,7 @@ function Storage({ result }: { result: DemoResult }) {
           <tr key={option.capacity_l}>
             <td>
               <strong>{number(option.capacity_l)} L</strong>
-              {option.capacity_l === result.inputs.capacity_l && <small>Selected scenario capacity</small>}
+              {option.capacity_l === result.inputs.capacity_l && <small>Selected example capacity</small>}
             </td>
             <td>{number(option.water_supplied_l)} L</td>
             <td>{number(option.overflow_l)} L</td>
@@ -585,7 +585,7 @@ function Community({
             <article key={building.id} className={selected ? 'selected' : ''}>
               <div>
                 <Building2 size={21} />
-                <span>{selected ? 'Selected in this scenario' : 'No upgrade selected'}</span>
+                <span>{selected ? 'Selected in this example' : 'No upgrade selected'}</span>
               </div>
               <h3>{building.name}</h3>
               <p>
@@ -597,7 +597,7 @@ function Community({
                   <strong>
                     {number(selected.capacity_l)} L candidate · ₹{number(selected.cost_inr)}
                   </strong>
-                  <p>{number(selected.period_benefit_l)} L additional scenario supply</p>
+                  <p>{number(selected.period_benefit_l)} L additional example supply</p>
                 </>
               ) : (
                 <p>

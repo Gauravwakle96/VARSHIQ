@@ -186,6 +186,8 @@ export function Verification({ property }: { property: Property }) {
       )}
       {property.measurement_status === 'field_verified'
         ? 'Field measurement recorded'
+        : property.roof_area_provenance?.basis === 'user_confirmed_map_estimate'
+          ? 'Map estimate · confirmed by you'
         : humanise(property.measurement_status)}
     </Chip>
   )
@@ -276,7 +278,7 @@ export function PropertyNeeded({
     )
   return null
 }
-export function Evidence({ title = 'Evidence & assumptions', value }: { title?: string; value: unknown }) {
+export function Evidence({ title = 'How this was calculated', value }: { title?: string; value: unknown }) {
   if (value == null) return null
   return (
     <details className="evidence">
@@ -309,7 +311,7 @@ function EvidenceValue({ value }: { value: unknown }) {
       <dl className="evidence-list">
         {Object.entries(value).map(([key, item]) => (
           <div key={key}>
-            <dt>{humanise(key)}</dt>
+            <dt>{humanise(key === 'scenario' ? 'comparison' : key)}</dt>
             <dd>
               <EvidenceValue value={item} />
             </dd>
@@ -317,7 +319,11 @@ function EvidenceValue({ value }: { value: unknown }) {
         ))}
       </dl>
     )
-  return <span>{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}</span>
+  // Older saved calculations retain their original evidence. Use plain wording only in the view.
+  const text = String(value).replace(/\bscenario(s)?\b/gi, match =>
+    `${match[0] === 'S' ? 'Example' : 'example'}${match.toLowerCase().endsWith('s') ? 's' : ''}`,
+  )
+  return <span>{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : text}</span>
 }
 export function InputError({ error }: { error: string | null }) {
   return error ? <Notice tone="error">{error}</Notice> : null

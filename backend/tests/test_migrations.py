@@ -34,8 +34,9 @@ def test_migration_upgrade_backfill_roundtrip_and_frozen_snapshot(tmp_path):
     migrate(["upgrade", "head"])
     with engine.connect() as connection:
         assert set(Base.metadata.tables) <= set(inspect(connection).get_table_names())
-        row = connection.execute(text("SELECT country,state,administrative_ids,parameters_updated_at FROM properties WHERE id='prop'")).one()
+        row = connection.execute(text("SELECT country,state,administrative_ids,parameters_updated_at,roof_area_provenance FROM properties WHERE id='prop'")).one()
         assert row[0] == "IN" and row[1] == "" and row[2] == "{}" and row[3] is not None
+        assert row[4] == "{}"
     migrate(["downgrade", "base"])
     assert inspect(engine).get_table_names() == ["alembic_version"]
     migrate(["upgrade", "head"])

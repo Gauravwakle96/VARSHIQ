@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { query, useApi } from '../api'
 import { useWorkspace } from '../context'
+import HomeOverview from '../components/HomeOverview'
 import type { Community, Property } from '../types'
 import {
   Button,
@@ -44,8 +45,9 @@ export default function Dashboard({
   const navigate = useNavigate()
   const municipal = mode === 'municipal'
   const municipalAllowed = ['municipal', 'admin'].includes(user?.role ?? '')
+  const simpleOverview = mode === 'overview' && user?.role === 'owner' && Boolean(property)
   const summary = useApi<Community>(
-    municipal && !municipalAllowed
+    simpleOverview || (municipal && !municipalAllowed)
       ? null
       : `/dashboard/${municipal ? 'municipal' : 'locality'}?${query({ locality, property_type: propertyType })}`,
   )
@@ -72,6 +74,7 @@ export default function Dashboard({
     selectProperty(item.id)
     navigate('/property')
   }
+  if (simpleOverview && property && !propertiesLoading) return <HomeOverview property={property} />
   const title =
     mode === 'community'
       ? 'Your locality, connected.'

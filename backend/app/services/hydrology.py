@@ -571,7 +571,7 @@ def optimise(
     limitations = [
         "Daily historical rainfall cannot identify hourly storms or dry gaps: first flush is approximated once per wet day.",
         "All daily inflow is captured before daily demand; overflow and useful supply may differ under actual within-day timing.",
-        "The submitted historical period may not represent long-term climate; the result is a planning scenario, not a guaranteed yield.",
+        "The submitted historical period may not represent long-term climate; the result is a planning estimate, not a guaranteed yield.",
         "The 90–95% target is an explicit candidate-relative heuristic, not an engineering standard or an economic optimum.",
         "Tank installation requires actual dimensions, access and structural assessment; available area alone cannot verify fit.",
         "Evaporation, leakage, maintenance downtime, pumping energy and water-quality treatment are not included.",

@@ -26,8 +26,10 @@ import {
 import { api, post, setCsrf, useApi } from './api'
 import type { LocationResult, Property, Session } from './types'
 import { WorkspaceContext } from './context'
-import { Chip, date, ErrorState, Loading, Notice } from './components/ui'
+import { Chip, date, ErrorState, Loading } from './components/ui'
 import { AuthPage, LandingPage } from './pages/Auth'
+import WorkspaceNavigation from './components/WorkspaceNavigation'
+import { workspaceLabel } from './components/workspaceNavigationData'
 import './features/demo/featureSandbox.css'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -123,6 +125,7 @@ function WorkspaceApp() {
   const selectProperty = (id: string) => {
     setSelectedId(id)
     setActiveLocation(null)
+    setSimulationMode(false)
   }
   const [menuOpen, setMenuOpen] = useState(false)
   const [toast, setToast] = useState('')
@@ -141,29 +144,38 @@ function WorkspaceApp() {
     if (!menuOpen) return
     const previous = document.activeElement as HTMLElement | null
     const navigation = document.getElementById('primary-navigation')
-    const controls = navigation
+    const visibleControls = () => navigation
       ? Array.from(navigation.querySelectorAll<HTMLElement>('a[href],button:not(:disabled)')).filter(
           (element) => element.getClientRects().length > 0,
         )
       : []
+    const controls = visibleControls()
     const firstNavigationLink = navigation?.querySelector<HTMLElement>('nav a[href]') ?? controls[0]
-    firstNavigationLink?.focus()
+    // Wait for the mobile drawer's visible style before moving focus; reset retained menu scroll.
+    const focusFrame = window.requestAnimationFrame(() => {
+      const nav = navigation?.querySelector('nav')
+      if (nav) nav.scrollTop = 0
+      firstNavigationLink?.focus()
+    })
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMenuOpen(false)
         return
       }
       if (event.key !== 'Tab' || !controls.length) return
-      if (event.shiftKey && document.activeElement === controls[0]) {
+      const currentControls = Array.from(navigation?.querySelectorAll<HTMLElement>('a[href],button:not(:disabled),summary') ?? [])
+        .filter(element => element.getClientRects().length > 0)
+      if (event.shiftKey && document.activeElement === currentControls[0]) {
         event.preventDefault()
-        controls[controls.length - 1]?.focus()
-      } else if (!event.shiftKey && document.activeElement === controls[controls.length - 1]) {
+        currentControls[currentControls.length - 1]?.focus()
+      } else if (!event.shiftKey && document.activeElement === currentControls[currentControls.length - 1]) {
         event.preventDefault()
-        ;(navigation?.querySelector<HTMLElement>('nav a[href]') ?? controls[0])?.focus()
+        currentControls[0]?.focus()
       }
     }
     document.addEventListener('keydown', keydown)
     return () => {
+      window.cancelAnimationFrame(focusFrame)
       document.removeEventListener('keydown', keydown)
       previous?.focus()
     }
@@ -186,6 +198,7 @@ function WorkspaceApp() {
       session.reload()
       setSelectedId('')
       setActiveLocation(null)
+      setSimulationMode(false)
     } catch (error) {
       setToast((error as Error).message)
     }
@@ -272,10 +285,10 @@ function WorkspaceApp() {
             <div className="workspace-badge">
               <span className="status-dot" />
               <div>
-                Private workspace<small>Property water intelligence</small>
+                My water workspace<small>Your properties, kept private</small>
               </div>
             </div>
-            <nav>
+            {user.role === 'owner' ? <WorkspaceNavigation /> : <nav>
               {groups.map((group) => (
                 <div className="nav-group" key={group.label}>
                   <div className="nav-label">{group.label}</div>
@@ -293,7 +306,7 @@ function WorkspaceApp() {
                   ))}
                 </div>
               ))}
-            </nav>
+            </nav>}
             <div className="sidebar-bottom">
               <div className="avatar">{user.name.charAt(0).toUpperCase()}</div>
               <div className="user-detail">
@@ -320,8 +333,9 @@ function WorkspaceApp() {
                 <span className="breadcrumb">
                   Workspace <span>/</span>{' '}
                   <strong>
-                    {groups.flatMap((group) => group.links).find((link) => link.to === location.pathname)
-                      ?.label ?? 'Water intelligence'}
+                    {(user.role === 'owner' ? workspaceLabel(location.pathname) :
+                      groups.flatMap((group) => group.links).find((link) => link.to === location.pathname)?.label)
+                      ?? 'My water'}
                   </strong>
                 </span>
               </div>
@@ -375,38 +389,30 @@ function WorkspaceApp() {
               </div>
               {buildings.error && <ErrorState error={buildings.error} retry={buildings.reload} />}
               {property?.measurement_status === 'planning_assumptions' && (
-                <Notice
-                  tone="warning"
-                  title={simulationMode ? 'Feature simulation active' : 'Planning assumptions active'}
-                >
-                  {simulationMode ? (
-                    <>
-                      The feature below uses fictional demonstration inputs. Your property’s live forecasts
-                      and planning configuration are separate. No real records are saved by this preview.
-                    </>
-                  ) : (
-                    <>
-                      Roof size, collection parameters, tank levels and demand for {property.name} are
-                      illustrative assumptions. Weather is a provider forecast. Verify the physical inputs
-                      before making installation decisions.
-                    </>
-                  )}
-                  <div className="feature-preview-switch">
-                    <button className="button secondary" onClick={() => setSimulationMode(value => !value)}>
-                      {simulationMode ? 'Return to live workspace' : 'Simulate this feature'}
-                    </button>
-                    <Link
-                      to={`/demo/features?feature=${encodeURIComponent(location.pathname)}`}
-                      className="button ghost"
-                    >
-                      Open full feature demo
-                    </Link>
+                <section className={`planning-bar ${simulationMode ? 'example-active' : ''}`} aria-label="Data status">
+                  <div className="planning-bar-copy">
+                    <strong>{simulationMode ? 'Example mode · simulated data' : 'Using estimated property details'}</strong>
+                    <p>{simulationMode ? 'Try the controls to see how this works. No property records are saved.' :
+                      'Roof size, tank level and daily use are estimates. Rain forecasts use your property’s real location.'}</p>
+                    <details>
+                      <summary>What does this mean?</summary>
+                      <p>These roof, collection, tank and daily-use inputs have not been measured. Check them before
+                        planning an installation. Example mode uses made-up rainfall and equipment values; it is
+                        separate from your property’s real forecast and saved details.</p>
+                      <Link to={`/demo/features?feature=${encodeURIComponent(location.pathname)}`}
+                        className="text-link">Explore the public demo <ArrowUpRight size={14} /></Link>
+                    </details>
                   </div>
-                </Notice>
+                  <div className="planning-bar-action">
+                    <button className="button secondary" onClick={() => setSimulationMode(value => !value)}>
+                      {simulationMode ? 'Back to my property' : 'Try an example'}
+                    </button>
+                  </div>
+                </section>
               )}
               <Suspense fallback={<Loading text="Opening water intelligence…" />}>
                 {simulationMode && property?.measurement_status === 'planning_assumptions' ? (
-                  <FeatureSandbox featurePath={location.pathname} />
+                  <FeatureSandbox featurePath={location.pathname} compact />
                 ) : (
                 <Routes>
                   <Route path="/" element={<Dashboard />} />

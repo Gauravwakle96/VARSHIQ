@@ -41,7 +41,7 @@ def workspace_demonstration(inputs):
         daily_demand_l=inputs.daily_demand_l,
         initial_storage_l=0,
     )
-    # Initial tank water is explicitly assumed to belong to the scenario supply.
+    # Initial tank water is explicitly assumed to belong to the example supply.
     supply = [
         {"source": "Simulated tank supply", "volume_l": calculation["water_supplied_l"]},
         {"source": "Assumed municipal fallback", "volume_l": calculation["unmet_demand_l"]},
@@ -120,7 +120,7 @@ def workspace_demonstration(inputs):
             "suitability": "professional_assessment_required",
         },
         "limitations": [
-            "Every scenario property, source volume, use allocation and performance reading is fictional; none is an actual record.",
+            "Every example property, source volume, use allocation and performance reading is fictional; none is an actual record.",
             "Municipal fallback and stored-water origin are illustrative assumptions, not supplied-water observations.",
             "The annual seasonal shape and wet dates are invented, not retrieved climate data or local observations.",
             "Annual sizing uses the real daily-balance engine with synthetic rainfall and an empty initial tank; no quotation is supplied.",
@@ -141,7 +141,7 @@ def demonstration_report(inputs):
     canvas.setFont("Helvetica", 10)
     lines = [
         "Fictional planning exercise. No actual property, measurement or forecast is assessed.",
-        "Source: synthetic 48-hour rainfall, illustrative scenario days 1-2 (July 2000).",
+        "Source: synthetic 48-hour rainfall, illustrative example days 1-2 (July 2000).",
         f"Catchment: {inputs.area_m2:g} m2; rainfall: {inputs.rainfall_mm:g} mm; coefficient: {inputs.runoff_coefficient:g}.",
         f"First flush: {inputs.first_flush_mm:g} mm/event; collection efficiency: {inputs.collection_efficiency:g}.",
         f"Tank: {inputs.capacity_l:g} L; assumed starting storage: {calculation['initial_storage_l']:g} L.",

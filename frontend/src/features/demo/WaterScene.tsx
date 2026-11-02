@@ -65,7 +65,7 @@ export default function WaterScene({
       <svg
         viewBox="0 0 610 310"
         role="img"
-        aria-label={`Simulated tank ${number(fraction * 100, 1)} percent full at scenario hour ${frame}. ${raining ? 'Synthetic rainfall is occurring.' : 'This simulated hour is dry.'}`}
+        aria-label={`Simulated tank ${number(fraction * 100, 1)} percent full at example hour ${frame}. ${raining ? 'Synthetic rainfall is occurring.' : 'This simulated hour is dry.'}`}
       >
         <defs>
           <clipPath id={clip}>

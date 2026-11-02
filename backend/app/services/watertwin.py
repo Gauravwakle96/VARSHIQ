@@ -70,7 +70,7 @@ async def run_twin(db, prop, days=7, capacity_l=None, daily_demand_l=None, persi
     capacity = prop.tank_capacity_l if capacity_l is None else capacity_l
     if capacity < prop.current_storage_l:
         raise HTTPException(
-            422, "Scenario capacity cannot be below entered storage without an explicit discharge scenario"
+            422, "The tank size you try cannot be below the stored volume unless you explicitly account for water discharge"
         )
     calculation = simulate(
         future,
@@ -83,6 +83,7 @@ async def run_twin(db, prop, days=7, capacity_l=None, daily_demand_l=None, persi
     )
     assumptions = {
         **inputs,
+        "roof_area_provenance": prop.roof_area_provenance,
         "input_basis": "planning_assumptions"
         if prop.measurement_status == "planning_assumptions"
         else "owner_entered",

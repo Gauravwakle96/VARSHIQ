@@ -199,11 +199,11 @@ def consistent_geometry(data):
 
 
 @router.post("/buildings", dependencies=[Depends(check_csrf)], status_code=201)
-def create_building(body: schemas.PropertyCreate, db: Session = Depends(get_db), user=Depends(require_user)):
+def create_building(body: schemas.PropertyRegistration, db: Session = Depends(get_db), user=Depends(require_user)):
     if body.geometry:
         assess_geometry(body.geometry)
         consistent_geometry(body)
-    data = body.model_dump()
+    data = body.model_dump(exclude={"roof_map_estimate"})
     prop = Property(
         **data,
         owner_id=user.id,
@@ -214,6 +214,8 @@ def create_building(body: schemas.PropertyCreate, db: Session = Depends(get_db),
     db.add(prop)
     db.flush()
     apply_footprint(db, prop)
+    if body.roof_map_estimate:
+        record_map_roof_estimate(db, prop, user, body.roof_map_estimate)
     db.add(
         WaterTank(
             property_id=prop.id,
@@ -228,7 +230,7 @@ def create_building(body: schemas.PropertyCreate, db: Session = Depends(get_db),
             provenance={"source": "user_entered", "user_id": user.id},
         )
     )
-    if prop.effective_catchment_m2:
+    if prop.effective_catchment_m2 and not body.roof_map_estimate:
         db.add(
             RoofMeasurement(
                 property_id=prop.id,
@@ -243,6 +245,39 @@ def create_building(body: schemas.PropertyCreate, db: Session = Depends(get_db),
     audit(db, user, "property.register", prop.id, {"geometry_source": prop.geometry_source})
     db.commit()
     return ok(property_data(prop))
+
+
+def record_map_roof_estimate(db, prop, user, confirmation):
+    assessment = assess_geometry(prop.geometry)
+    prop.effective_catchment_m2 = assessment["area_m2"] * confirmation.connected_fraction
+    if not 0 < prop.effective_catchment_m2 <= 1e8:
+        raise HTTPException(422, "The map-derived roof area is outside the supported range")
+    prop.roof_area_provenance = {
+        "basis": "user_confirmed_map_estimate",
+        "source": prop.geometry_source,
+        "source_id": prop.geometry_source_id,
+        "outline_area_m2": assessment["area_m2"],
+        "connected_fraction": confirmation.connected_fraction,
+        "area_m2": prop.effective_catchment_m2,
+        "method": assessment["method"],
+        "confirmed_by": user.id,
+        "confirmed_at": now().isoformat(),
+        "field_verified": False,
+        "limitations": [
+            "User confirmation identifies the outline; it is not a physical roof measurement.",
+            "Connected fraction is a user assumption; roof slope, extensions and pipe connections are not established by the map.",
+        ],
+    }
+    if prop.measurement_status != "planning_assumptions":
+        prop.measurement_status = "map_estimated"
+    prop.parameters_updated_at = now()
+    db.add(RoofMeasurement(
+        property_id=prop.id, user_id=user.id, area_m2=prop.effective_catchment_m2,
+        method="User-confirmed map outline estimate", measured_at=now(), status="map_estimated",
+        evidence_note=f"Source: {prop.geometry_source}; outline area {assessment['area_m2']:.2f} m²; "
+                      f"assumed connected fraction {confirmation.connected_fraction:.4f}. Not field measured.",
+    ))
+    audit(db, user, "roof.map_estimate_confirm", prop.id, prop.roof_area_provenance)
 
 
 @router.get("/buildings/{property_id}")
@@ -281,6 +316,9 @@ def patch_building(
 ):
     prop = authorised_property(db, property_id, user)
     changes = body.model_dump(exclude_unset=True)
+    map_request = changes.pop("roof_map_estimate", None)
+    if map_request and "effective_catchment_m2" in changes:
+        raise HTTPException(422, "Choose a map estimate or a manually entered roof area")
     was_planning = prop.measurement_status == "planning_assumptions"
     planning = changes.pop("planning_assumptions", was_planning)
     if planning and changes.get("storage_status") == "measured":
@@ -295,6 +333,8 @@ def patch_building(
     if validated.geometry:
         assess_geometry(validated.geometry)
         consistent_geometry(validated)
+    if map_request and not validated.geometry:
+        raise HTTPException(422, "Select or draw a building outline before using a map estimate")
     for key, value in validated.model_dump().items():
         setattr(prop, key, value)
     roof_fields = {
@@ -310,11 +350,13 @@ def patch_building(
     roof_changes = {key for key in roof_fields if key in changes and getattr(validated, key) != current[key]}
     if roof_changes or planning != was_planning:
         prop.parameters_updated_at = now()
+    if {"geometry", "latitude", "longitude", "effective_catchment_m2"} & roof_changes:
+        prop.roof_area_provenance = {}
     if planning:
         prop.measurement_status = "planning_assumptions"
     elif roof_changes or was_planning:
         prop.measurement_status = "user_entered" if prop.effective_catchment_m2 else "unverified"
-    if "effective_catchment_m2" in roof_changes and not planning:
+    if "effective_catchment_m2" in roof_changes and not planning and not map_request:
         prop.measurement_status = "user_entered" if prop.effective_catchment_m2 else "unverified"
         if prop.effective_catchment_m2:
             db.add(
@@ -330,6 +372,10 @@ def patch_building(
             )
     if {"geometry", "geometry_source", "geometry_source_id", "geometry_source_uri"} & changes.keys():
         apply_footprint(db, prop)
+    if map_request:
+        record_map_roof_estimate(db, prop, user, schemas.RoofMapConfirmation.model_validate(map_request))
+    elif prop.roof_area_provenance and not planning:
+        prop.measurement_status = "map_estimated"
     if "current_storage_l" in changes and "storage_measured_at" not in changes:
         prop.storage_measured_at = now()
     if "tank_capacity_l" in changes:
@@ -372,6 +418,7 @@ def measure_roof(
     measurement = RoofMeasurement(property_id=prop.id, user_id=user.id, **body.model_dump())
     db.add(measurement)
     prop.effective_catchment_m2, prop.measurement_status = body.area_m2, body.status
+    prop.roof_area_provenance = {}
     prop.parameters_updated_at = now()
     audit(
         db,

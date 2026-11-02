@@ -29,7 +29,7 @@ const workspaceDefaults: Inputs = {
   annual_rainfall_mm: 1500,
 }
 
-export default function FeatureSandbox({ featurePath }: { featurePath: string }) {
+export default function FeatureSandbox({ featurePath, compact = false }: { featurePath: string; compact?: boolean }) {
   const feature = previewFeature(featurePath)
   const [inputs, setInputs] = useState<Inputs>(workspaceDefaults)
   const [revision, setRevision] = useState(0)
@@ -66,7 +66,7 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
     <section className="feature-sandbox" aria-label={`${feature.name} simulation`}>
       <div className="feature-sandbox-heading">
         <div>
-          <span className="eyebrow">SIMULATED FEATURE WORKSPACE</span>
+          <span className="eyebrow">{compact ? 'TRY IT WITH SIMULATED DATA' : 'SIMULATED FEATURE WORKSPACE'}</span>
           <h1>{feature.name}</h1>
           <p>{feature.purpose}</p>
         </div>
@@ -74,7 +74,12 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
           <FlaskConical size={14} /> Fictional data · no records saved
         </Chip>
       </div>
-      <Notice title="Who this helps">{feature.benefit}</Notice>
+      {compact ? (
+        <details className="friendly-details panel">
+          <summary>About this example and what you need for real use</summary>
+          <p>{feature.benefit}</p><p>{feature.liveNeeds}</p>
+        </details>
+      ) : <Notice title="Who this helps">{feature.benefit}</Notice>}
       {waterControls && (
         <>
           <div className="feature-controls panel">
@@ -133,7 +138,7 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
               setInputs={setInputs}
             />
             <NumberControl
-              label="Scenario tank capacity (L)"
+              label="Example tank capacity (L)"
               field="capacity_l"
               min={100}
               max={50000}
@@ -141,7 +146,7 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
               setInputs={setInputs}
             />
             <NumberControl
-              label="Scenario demand (L/day)"
+              label="Example demand (L/day)"
               field="daily_demand_l"
               min={0}
               max={30000}
@@ -150,7 +155,7 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
             />
             <div className="feature-control-actions">
               <Button variant="ghost" onClick={() => setInputs({ ...workspaceDefaults })}>
-                <RotateCcw size={15} /> Reset scenario
+                <RotateCcw size={15} /> Reset example
               </Button>
             </div>
           </div>
@@ -211,9 +216,9 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
           </details>
         </>
       )}
-      <Notice title="What the real page needs" tone="warning">
+      {!compact && <Notice title="What the real page needs" tone="warning">
         {feature.liveNeeds}
-      </Notice>
+      </Notice>}
       {error ? (
         <Notice tone="warning" title="Simulation unavailable">
           <p>{error}</p>
@@ -222,7 +227,7 @@ export default function FeatureSandbox({ featurePath }: { featurePath: string })
           </div>
         </Notice>
       ) : !result ? (
-        <Loading text="Calculating the fictional feature scenario…" />
+        <Loading text="Calculating the fictional feature example…" />
       ) : (
         <motion.div
           className="feature-result"
@@ -318,7 +323,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
     return (
       <>
         <Notice title="Real public geography">
-          The basemap and available OSM outlines are real. The scenario’s catchment, equipment and ownership
+          The basemap and available OSM outlines are real. The example’s catchment, equipment and ownership
           remain fictional. Use the map controls to select a place and retrieve outlines.
         </Notice>
         <DemoMap water={null} />
@@ -331,19 +336,19 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
       >
         <div className="metrics-grid three">
           <Metric
-            label="Scenario catchment"
+            label="Example catchment"
             value={number(inputs.area_m2)}
             unit="m²"
             detail="Illustrative · never field verified"
           />
           <Metric
-            label="Scenario tank"
+            label="Example tank"
             value={number(inputs.capacity_l)}
             unit="L"
             detail="Assumed capacity"
           />
           <Metric
-            label="Scenario demand"
+            label="Example demand"
             value={number(inputs.daily_demand_l)}
             unit="L/day"
             detail="Assumed non-potable demand"
@@ -370,7 +375,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
         }
       >
         <Metric
-          label="Scenario demand"
+          label="Example demand"
           value={number(calculation.demand_l)}
           unit="L"
           detail="Two synthetic days; no actual ledger"
@@ -381,7 +386,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
               <td>{row.label}</td>
               <td>{number(row.volume)} L</td>
               <td>
-                <Chip tone="amber">Fictional scenario</Chip>
+                <Chip tone="amber">Fictional example</Chip>
               </td>
             </tr>
           ))}
@@ -397,13 +402,13 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
     return (
       <Section title="Practice monsoon readiness">
         <div className="metrics-grid three">
-          <Metric label="Scenario harvestable inflow" value={number(calculation.net_inflow_l)} unit="L" />
+          <Metric label="Example harvestable inflow" value={number(calculation.net_inflow_l)} unit="L" />
           <Metric
             label="Initial available capacity"
             value={number(calculation.capacity_l - calculation.initial_storage_l)}
             unit="L"
           />
-          <Metric label="Scenario overflow" value={number(calculation.overflow_l)} unit="L" />
+          <Metric label="Example overflow" value={number(calculation.overflow_l)} unit="L" />
         </div>
         <p>
           These checkboxes are a practice exercise. No inspection date, performed task or confirmed fault is
@@ -516,7 +521,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
           This is a synthetic {data.historical.year} example totalling{' '}
           {number(data.historical.annual_rainfall_mm)} mm. It does not describe any actual Indian location.
         </p>
-        <DataTable headings={['Scenario month', 'Invented rainfall']}>
+        <DataTable headings={['Example month', 'Invented rainfall']}>
           {data.historical.monthly.map((item) => (
             <tr key={item.month}>
               <td>
@@ -542,7 +547,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
         <p>
           This is an invented 48-hour event pattern, not a live forecast or dynamically calculated tomorrow.
         </p>
-        <DataTable headings={['Scenario hour', 'Synthetic rain', 'Modelled net inflow']}>
+        <DataTable headings={['Example hour', 'Synthetic rain', 'Modelled net inflow']}>
           {calculation.hourly.map((hour, index) => (
             <tr key={hour.time}>
               <td>{index + 1}</td>
@@ -603,7 +608,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
             unit="L"
           />
           <Metric
-            label="Remaining scenario budget"
+            label="Remaining example budget"
             value={number(result.community.budget_remaining_inr)}
             unit="₹"
           />
@@ -620,7 +625,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
             ))}
           </DataTable>
         ) : (
-          <Notice title="No beneficial affordable upgrade in this scenario">
+          <Notice title="No beneficial affordable upgrade in this example">
             Adjust the illustrative budget or rainfall. The solver does not invent a positive benefit when the
             inputs show none.
           </Notice>
@@ -652,7 +657,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
           </DataTable>
         ) : (
           <Notice>
-            No wet sample pairs exist under this scenario’s net inflow. Actual observations remain
+            No wet sample pairs exist under this example’s net inflow. Actual observations remain
             unavailable.
           </Notice>
         )}
@@ -670,7 +675,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
             value={number(data.community.fictional_count)}
             detail="Zero actual registrations created"
           />
-          <Metric label="Verified rooftop area" value="0" unit="m²" detail="Scenario areas are assumptions" />
+          <Metric label="Verified rooftop area" value="0" unit="m²" detail="Example areas are assumptions" />
           <Metric label="Modelled combined inflow" value={number(data.community.net_inflow_l)} unit="L" />
         </div>
         <PropertySamples result={result} />
@@ -684,14 +689,14 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
     )
   if (path === '/assistant') {
     const answers: Record<string, string> = {
-      collection: `The backend scenario calculates ${number(calculation.net_inflow_l)} L of net harvestable inflow after ${number(calculation.first_flush_l)} L of first flush and ${number(calculation.collection_loss_l)} L of collection losses.`,
+      collection: `The backend example calculates ${number(calculation.net_inflow_l)} L of net harvestable inflow after ${number(calculation.first_flush_l)} L of first flush and ${number(calculation.collection_loss_l)} L of collection losses.`,
       overflow: `The backend water balance estimates ${number(calculation.overflow_l)} L of overflow and ${number(calculation.final_storage_l)} L of ending storage for this fictional tank.`,
       limits:
         'Roof area, rainfall, tank state, demand and the annual seasonal shape are fictional. No quality, aquifer, inspection or field-verification facts are established.',
     }
     return (
-      <Section title="Ask about this simulated scenario">
-        <Field label="Question for the scenario assistant">
+      <Section title="Ask about this simulated example">
+        <Field label="Question for the example assistant">
           <select value={question} onChange={(event) => setQuestion(event.currentTarget.value)}>
             <option value="collection">How much water could be collected?</option>
             <option value="overflow">Could the tank overflow?</option>
@@ -724,7 +729,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
             [
               'Owner measurements',
               'Catchment, storage and actual collected water',
-              'Absent from this fictional scenario',
+              'Absent from this fictional example',
             ],
             ['Groundwater and soil', 'Professional recharge screening', 'No values invented'],
             ['Optional AI', 'Explain backend facts', 'Not required for this preview'],
@@ -747,7 +752,7 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
       <Section title="Configuration practice">
         <p>
           Use the profile, rainfall, catchment, storage and collection controls above. Reset restores this
-          browser scenario. Production locality, provider credentials, permissions and records are never
+          browser example. Production locality, provider credentials, permissions and records are never
           modified.
         </p>
         <Evidence title="Current illustrative configuration" value={inputs} />
@@ -755,12 +760,12 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
     )
   return (
     <Section
-      title={path === '/recommendations' ? 'Explainable scenario actions' : 'Every litre accounted for'}
+      title={path === '/recommendations' ? 'Explainable example actions' : 'Every litre accounted for'}
     >
       <div className="metrics-grid three">
-        <Metric label="Scenario gross runoff" value={number(calculation.gross_runoff_l)} unit="L" />
-        <Metric label="Scenario first flush" value={number(calculation.first_flush_l)} unit="L" />
-        <Metric label="Scenario net inflow" value={number(calculation.net_inflow_l)} unit="L" />
+        <Metric label="Example gross runoff" value={number(calculation.gross_runoff_l)} unit="L" />
+        <Metric label="Example first flush" value={number(calculation.first_flush_l)} unit="L" />
+        <Metric label="Example net inflow" value={number(calculation.net_inflow_l)} unit="L" />
       </div>
       <DataTable headings={['Water-balance item', 'Modelled volume']}>
         {[
@@ -779,11 +784,11 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
       </DataTable>
       {path === '/recommendations' && (
         <Notice title="Preliminary next steps">
-          Compare annual tank scenarios, measure connected catchment, inspect drains and filters, and obtain
+          Compare annual tank examples, measure connected catchment, inspect drains and filters, and obtain
           installation quotations.{' '}
           {calculation.overflow_l > 0
             ? 'This simulated event also shows overflow: discuss a safe overflow route.'
-            : 'No overflow appears in this scenario; that is not a guarantee about future rainfall.'}{' '}
+            : 'No overflow appears in this example; that is not a guarantee about future rainfall.'}{' '}
           Recharge and structural suitability require field engineering.
         </Notice>
       )}

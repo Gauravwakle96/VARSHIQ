@@ -184,7 +184,7 @@ export const tour = [
     title: 'Compare storage',
     label: 'Better questions',
     heading: 'A bigger tank is a choice to evaluate.',
-    text: 'Compare overflow, demand supplied and water remaining under identical rainfall and demand. Bigger storage can retain more water, but may add little useful supply in a short scenario.',
+    text: 'Compare overflow, demand supplied and water remaining under identical rainfall and demand. Bigger storage can retain more water, but may add little useful supply in a short example.',
     takeaway:
       'These 48-hour comparisons explain behaviour. Actual sizing needs seasonal history, space, demand and quotations.',
   },

@@ -37,7 +37,8 @@ export interface Property {
   geometry_source_id?: string
   footprint_area_m2: number | null
   effective_catchment_m2: number | null
-  measurement_status: 'unverified' | 'user_entered' | 'field_verified' | 'planning_assumptions'
+  measurement_status: 'unverified' | 'user_entered' | 'field_verified' | 'planning_assumptions' | 'map_estimated'
+  roof_area_provenance?: { basis: string; source: string; connected_fraction: number; confirmed_at: string; field_verified: boolean; area_m2: number }
   roof_material: string
   runoff_coefficient: number | null
   coefficient_source: string

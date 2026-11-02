@@ -4,6 +4,7 @@ import { ArrowRight, Building2, Camera, CheckCircle2, MapPin, Ruler, Save, Shiel
 import { api, patch, post, useApi } from '../api'
 import { useWorkspace } from '../context'
 import type { Geometry, Property } from '../types'
+import RoofAreaInput, { RoofWaterAdvice, type RoofChoice } from '../components/RoofAreaInput'
 import {
   Button,
   date,
@@ -28,6 +29,7 @@ interface MapSelection {
   geometry_source?: string
   geometry_source_id?: string
   name?: string
+  estimate_roof?: boolean
 }
 interface PilotDefaults {
   pilot_locality: string
@@ -66,7 +68,7 @@ export default function PropertyPages({ mode }: { mode: 'register' | 'details' |
   if (mode === 'verify') return <VerificationForm key={workspace.property.id} property={workspace.property} />
   return (
     <PropertyForm
-      key={`${workspace.property.id}-${workspace.property.created_at}`}
+      key={JSON.stringify(workspace.property)}
       property={workspace.property}
     />
   )
@@ -85,12 +87,17 @@ function PropertyForm({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [geometry, setGeometry] = useState(property?.geometry ?? selection?.geometry ?? null)
+  const [roofChoice, setRoofChoice] = useState<RoofChoice>({ mode: selection?.estimate_roof && selection.geometry ? 'map' : 'manual', confirmed: false, fraction: property?.roof_area_provenance?.connected_fraction ?? 1 })
+  const [inputsChanged, setInputsChanged] = useState(false)
   const navigate = useNavigate()
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setBusy(true)
     setError(null)
     const values = new FormData(event.currentTarget)
+    if (roofChoice.mode === 'map' && (!roofChoice.confirmed || !geometry)) {
+      setError('Confirm that this is your building and the outline looks correct.'); setBusy(false); return
+    }
     const optionalNumber = (key: string) => (values.get(key) === '' ? null : Number(values.get(key)))
     const payload = {
       name: values.get('name'),
@@ -109,7 +116,8 @@ function PropertyForm({
       geometry,
       geometry_source: property?.geometry_source ?? selection?.geometry_source ?? 'manual',
       geometry_source_id: property?.geometry_source_id ?? selection?.geometry_source_id ?? '',
-      effective_catchment_m2: optionalNumber('effective_catchment_m2'),
+      ...(roofChoice.mode === 'map' ? { roof_map_estimate: { confirmed: true, connected_fraction: roofChoice.fraction } } :
+        { effective_catchment_m2: optionalNumber('effective_catchment_m2') }),
       roof_material: values.get('roof_material'),
       runoff_coefficient: optionalNumber('runoff_coefficient'),
       coefficient_source: values.get('coefficient_source'),
@@ -148,7 +156,7 @@ function PropertyForm({
           ? 'Property inputs updated. Re-run WaterTwin to use the new values.'
           : 'Real property registered. Add catchment evidence next.',
       )
-      navigate(property ? '/property' : '/verify')
+      navigate(property || roofChoice.mode === 'map' ? '/property' : '/verify')
     } catch (error) {
       setError((error as Error).message)
     } finally {
@@ -173,12 +181,16 @@ function PropertyForm({
         }
       />
       {property && (
+        <>
+        <Verification property={property} />
+        <details className="friendly-details panel">
+        <summary>Saved property summary</summary>
         <div className="metrics-grid three">
           <Metric
             label="Effective rooftop catchment"
             value={number(property.effective_catchment_m2, 1)}
             unit="m²"
-            detail={<Verification property={property} />}
+            detail="From the saved roof input"
           />
           <Metric
             label="Geospatial footprint"
@@ -193,9 +205,17 @@ function PropertyForm({
             detail={`${property.storage_status} · ${date(property.storage_measured_at, property.timezone)}`}
           />
         </div>
+        </details>
+        </>
       )}
-      <form onSubmit={submit} className="form-stack">
-        <Section title="Property identity" subtitle="Coordinates use WGS84 latitude and longitude.">
+      <form onSubmit={submit} className="form-stack" onChange={() => setInputsChanged(true)} onInvalidCapture={event => {
+        let details = (event.target as HTMLElement).closest('details')
+        while (details) {
+          details.open = true
+          details = details.parentElement?.closest('details') ?? null
+        }
+      }}>
+        <Section title="About your property" subtitle="Start with its name and type. Address details are below.">
           <div className="form-grid">
             <Field label="Property name">
               <input
@@ -214,6 +234,10 @@ function PropertyForm({
                 <option value="community">Community property</option>
               </select>
             </Field>
+          </div>
+          <details className="friendly-details" open={!property}>
+            <summary>Address and map details</summary>
+            <div className="form-grid">
             <Field
               label="Country code"
               hint="IN is the Indian pilot default; verify the actual property country."
@@ -342,25 +366,17 @@ function PropertyForm({
               </Button>
             </div>
           )}
+          </details>
         </Section>
         <Section
-          title="Catchment & collection"
-          subtitle="Enter connected catchment measurements and explicit engineering assumptions."
+          title="Roof and rainwater collection"
+          subtitle="How much roof drains into your collection system?"
         >
+          <RoofAreaInput geometry={geometry} source={property?.geometry_source ?? selection?.geometry_source ?? 'manual'}
+            latitude={property?.latitude ?? selection?.latitude ?? activeLocation?.latitude ?? 0}
+            longitude={property?.longitude ?? selection?.longitude ?? activeLocation?.longitude ?? 0}
+            property={property} choice={roofChoice} onChange={choice => { setRoofChoice(choice); setInputsChanged(true) }} />
           <div className="form-grid">
-            <Field
-              label="Effective rooftop catchment (m²)"
-              hint="Enter only the area draining to the harvesting system. Leave blank if unknown."
-            >
-              <input
-                name="effective_catchment_m2"
-                type="number"
-                min={0.01}
-                step="any"
-                defaultValue={property?.effective_catchment_m2 ?? ''}
-                placeholder="Measurement required for modelling"
-              />
-            </Field>
             <Field label="Roof material">
               <select name="roof_material" defaultValue={property?.roof_material ?? 'rcc'}>
                 <option value="rcc">RCC</option>
@@ -370,6 +386,11 @@ function PropertyForm({
                 <option value="other">Other</option>
               </select>
             </Field>
+          </div>
+          <details className="friendly-details" open={!property}>
+            <summary>Collection settings and assumptions</summary>
+            <p className="muted">These settings account for runoff, the first dirty rainwater diverted, and losses in filters and pipes.</p>
+            <div className="form-grid">
             <Field
               label="Runoff coefficient (0–1)"
               hint="A documented site/design value; material alone does not establish one."
@@ -424,14 +445,12 @@ function PropertyForm({
               />
             </Field>
           </div>
-          <Notice tone="warning">
-            Entering an area here records a user-provided input. Use rooftop verification to document a field
-            measurement and evidence.
-          </Notice>
+          </details>
+          <RoofWaterAdvice key={property?.id ?? 'new'} property={property} inputsChanged={inputsChanged} />
         </Section>
         <Section
-          title="Tank & demand"
-          subtitle="Set daily demand for the intended water use, rather than assuming all consumption can be supplied."
+          title="Your tank and daily water use"
+          subtitle="Enter how much the tank holds and how much water you need each day. Estimates are allowed when clearly marked."
         >
           <div className="form-grid">
             <Field label="Tank capacity (L)">
@@ -473,6 +492,10 @@ function PropertyForm({
                 <option value="measured">Actual measurement</option>
               </select>
             </Field>
+          </div>
+          <details className="friendly-details">
+            <summary>Extra tank details and notes</summary>
+            <div className="form-grid">
             <Field label="Storage reading date & time">
               <input
                 name="storage_measured_at"
@@ -513,7 +536,10 @@ function PropertyForm({
               placeholder="Connected drains, intended water uses, reading method and known constraints…"
             />
           </Field>
+          </details>
         </Section>
+        <details className="friendly-details panel">
+        <summary>Privacy and community sharing</summary>
         <Section title="Privacy & community contribution">
           <label className="checkbox-row">
             <input
@@ -529,6 +555,7 @@ function PropertyForm({
             </span>
           </label>
         </Section>
+        </details>
         <InputError error={error} />
         <div className="form-footer">
           <span>
