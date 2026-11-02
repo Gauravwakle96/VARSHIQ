@@ -61,7 +61,7 @@ def main():
             [75.3432, 19.8761], [75.3434, 19.8761], [75.3434, 19.8763],
             [75.3432, 19.8763], [75.3432, 19.8761],
         ]]},
-        "geometry_source": "manual_polygon",
+        "geometry_source": "manual",
         "effective_catchment_m2": 100, "runoff_coefficient": 0.8,
         "coefficient_source": "AUTOMATED TEST assumption",
         "first_flush_mm": 1, "collection_efficiency": 0.9,
