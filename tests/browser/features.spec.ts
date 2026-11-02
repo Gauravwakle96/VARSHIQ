@@ -2,13 +2,10 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import { mkdir } from 'node:fs/promises';
 
-const names = ['Select location', 'Water sources', 'Water consumption', 'Maintenance & readiness',
-  'Water quality', 'Groundwater & soil', 'Community budget', 'Overview', 'Building map',
-  'Register property', 'Property details', 'Roof verification', 'Rainfall forecast', 'Historical rainfall',
-  'WaterTwin', 'Rainwater calculator', 'Storage optimiser', 'Recommendations', 'Field observations',
-  'Performance history', 'Locality network', 'Commercial', 'Municipal', 'Water assistant', 'Assessment reports', 'Data sources', 'Settings'];
+const sections = [['Overview', 'Overview'], ['My property', 'Property details'], ['Rainfall', 'Rainfall forecast'],
+  ['My tank', 'WaterTwin'], ['Records', 'Field observations'], ['Reports', 'Assessment reports']];
 
-test('every public feature has an interactive labelled preview without private requests', async ({ page }) => {
+test('six demo sections keep example inputs optional and results interactive without private requests', async ({ page }) => {
   const errors: string[] = [];
   const privateRequests: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -21,28 +18,34 @@ test('every public feature has an interactive labelled preview without private r
   await expect(page.getByRole('heading', { name: 'Overview', exact: true })).toBeVisible();
   await expect(page.getByText('Every litre accounted for', { exact: true })).toBeVisible();
   const nav = page.getByRole('navigation', { name: 'Simulated feature navigation' });
-  await expect(nav.getByRole('link')).toHaveCount(names.length);
-  for (const name of names) {
+  await expect(nav.getByRole('link')).toHaveCount(6);
+  for (const [name, heading] of sections) {
     await nav.getByRole('link', { name, exact: true }).click();
-    await expect(page.getByRole('heading', { name, exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: heading, exact: true })).toBeVisible();
     await expect(page.getByText('Fictional data · no records saved', { exact: true })).toBeVisible();
-    await expect(page.getByText('What the real page needs', { exact: true })).toBeVisible();
+    await expect(page.locator('.example-settings')).not.toHaveAttribute('open');
   }
-  await nav.getByRole('link', { name: 'Maintenance & readiness', exact: true }).click();
+  await nav.getByRole('link', { name: 'Records', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Demo section pages' }).getByRole('link', { name: 'Maintenance', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Practice monsoon readiness', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Roof area (m²)', { exact: true })).toBeHidden();
   await page.getByRole('checkbox', { name: /^Roof cleaning/ }).check();
   await expect(page.getByText('1 of 6 practice checks selected.', { exact: false })).toBeVisible();
-  await nav.getByRole('link', { name: 'Water quality', exact: true }).click();
-  await page.getByLabel('Simulated pH', { exact: true }).fill('6.8');
-  await expect(page.getByRole('cell', { name: '6.8', exact: true })).toBeVisible();
-  await expect(page.getByText('Suitability remains unestablished', { exact: true })).toBeVisible();
-  await nav.getByRole('link', { name: 'Community budget', exact: true }).click();
-  await page.getByText('Collection, starting storage and annual assumptions', { exact: true }).click();
-  await page.getByLabel('Illustrative community budget (₹)').fill('0');
-  await expect(page.getByText('No beneficial affordable upgrade in this example', { exact: true })).toBeVisible();
-  await nav.getByRole('link', { name: 'Water assistant', exact: true }).click();
+  await page.locator('.example-settings > summary').click();
+  await page.getByLabel('Roof area (m²)', { exact: true }).fill('180');
+  await expect(page.locator('.example-summary')).toContainText('180 m²');
+  await expect(page.getByLabel('Invented annual rainfall (mm)')).toHaveCount(0);
+  await expect(page.getByLabel('Illustrative community budget (₹)')).toHaveCount(0);
+  await page.locator('.example-settings > summary').click();
+  await page.getByRole('link', { name: 'Water assistant', exact: true }).click();
   await page.getByLabel('Question for the example assistant').selectOption('overflow');
   await expect(page.getByText('The backend water balance estimates', { exact: false })).toBeVisible();
-  await nav.getByRole('link', { name: 'Assessment reports', exact: true }).click();
+  await nav.getByRole('link', { name: 'My tank', exact: true }).click();
+  await page.getByRole('navigation', { name: 'Demo section pages' }).getByRole('link', { name: 'Tank sizes', exact: true }).click();
+  await page.locator('.example-settings > summary').click();
+  await page.getByText('More example settings', { exact: true }).click();
+  await expect(page.getByLabel('Invented annual rainfall (mm)')).toBeVisible();
+  await nav.getByRole('link', { name: 'Reports', exact: true }).click();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download simulated PDF', exact: true }).click();
   const download = await downloadPromise;
@@ -51,16 +54,17 @@ test('every public feature has an interactive labelled preview without private r
   await mkdir('artifacts/features', { recursive: true });
   for (const viewport of [{ width: 390, height: 844 }, { width: 768, height: 1024 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(viewport);
-    await page.goto('/#/demo/features?feature=%2Fquality');
-    await expect(page.getByLabel('Simulated pH', { exact: true })).toBeVisible();
+    await page.goto('/#/demo/features?feature=%2Fmaintenance');
+    await expect(page.getByRole('heading', { name: 'Practice monsoon readiness', exact: true })).toBeVisible();
+    await expect(page.getByLabel('Roof area (m²)', { exact: true })).toBeHidden();
     await expect(page.locator('.feature-result')).toHaveCSS('opacity', '1');
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
     const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     expect(axe.violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) }))).toEqual([]);
-    await page.screenshot({ path: `artifacts/features/quality-${viewport.width}.png` });
+    await page.screenshot({ path: `artifacts/features/blue-maintenance-${viewport.width}.png` });
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByLabel('Feature to simulate', { exact: true }).selectOption('/twin');
+  await page.getByLabel('Section to explore', { exact: true }).selectOption('/twin');
   await expect(page.getByRole('heading', { name: 'WaterTwin', exact: true })).toBeVisible();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.reload();
@@ -73,7 +77,8 @@ test('every public feature has an interactive labelled preview without private r
   await expect(page).toHaveURL(/demo\/features/);
   await page.route('**/api/v1/demo/workspace', route => route.fulfill({ status: 503,
     contentType: 'application/json', body: JSON.stringify({ error: { message: 'AUTOMATED TEST feature failure' } }) }));
-  await page.getByLabel('Assumed catchment (m²)', { exact: true }).fill('180');
+  await page.locator('.example-settings > summary').click();
+  await page.getByLabel('Roof area (m²)', { exact: true }).fill('180');
   await expect(page.getByText('AUTOMATED TEST feature failure', { exact: true })).toBeVisible();
   await expect(page.getByText('Modelled inflow', { exact: true })).toBeHidden();
   await page.unroute('**/api/v1/demo/workspace');
@@ -118,23 +123,22 @@ test('owner planning previews preserve real evidence and municipal permissions',
     expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
     const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     expect(axe.violations.map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) }))).toEqual([]);
-    await page.screenshot({ path: `artifacts/features/home-${viewport.width}.png` });
+    await page.screenshot({ path: `artifacts/features/blue-home-${viewport.width}.png` });
   }
-  // Expandable menus retain every existing destination, including keyboard access on mobile.
-  await page.locator('.nav-more > summary').click();
-  for (const summary of await page.locator('.nav-disclosure summary').all()) {
-    const group = summary.locator('..');
-    if (await group.getAttribute('open') === null) await summary.click();
-    await expect(group.locator('.nav-link').first()).toBeVisible();
-  }
-  await expect(page.locator('#primary-navigation nav .nav-link')).toHaveCount(27);
+  // Core destinations and section links replace the long nested catalogue.
+  await expect(page.locator('.nav-more, .nav-disclosure')).toHaveCount(0);
+  const ownerNav = page.getByRole('navigation', { name: 'Your water tools' });
+  await expect(ownerNav.getByRole('link', { name: 'Municipal overview', exact: true })).toHaveCount(0);
+  await expect(ownerNav.getByRole('link', { name: 'Groundwater & soil', exact: true })).toHaveCount(0);
+  await ownerNav.getByRole('link', { name: 'My property', exact: true }).click();
+  await page.getByRole('navigation', { name: 'My property pages' }).getByRole('link', { name: 'Building map', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Find the roof. Start the connection.', exact: true })).toBeVisible();
+  await expect(ownerNav.getByRole('link', { name: 'My property', exact: true })).toHaveAttribute('aria-current', 'page');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
-  await expect(page.getByRole('link', { name: 'My overview', exact: true })).toBeFocused();
-  await page.locator('.nav-disclosure summary').filter({ hasText: 'Help & settings' }).focus();
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.nav-disclosure').filter({ hasText: 'Help & settings' })).not.toHaveAttribute('open');
+  await expect(page.getByRole('button', { name: 'Open navigation', exact: true })).toHaveAttribute('aria-expanded', 'true');
+  await expect(ownerNav.getByRole('link', { name: 'Overview', exact: true })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: 'Open navigation', exact: true })).toBeFocused();
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -152,18 +156,18 @@ test('owner planning previews preserve real evidence and municipal permissions',
   await expect(page.locator('[name="country"]')).toBeFocused();
   await page.locator('[name="country"]').fill('IN');
   expect(await page.locator('#main-content').innerText()).not.toMatch(/\bscenario\b/i);
-  await page.goto('/#/quality');
+  await page.goto('/#/maintenance');
   await page.getByRole('button', { name: 'Try an example', exact: true }).click();
-  await expect(page.getByLabel('Simulated pH', { exact: true })).toBeVisible();
-  await page.getByLabel('Simulated pH', { exact: true }).fill('8');
-  await page.locator('.nav-disclosure summary').filter({ hasText: 'Property & roof' }).click();
-  await page.getByRole('link', { name: 'My property details', exact: true }).click();
-  await page.getByLabel('Assumed catchment (m²)', { exact: true }).fill('200');
-  const communityMenu = page.locator('.nav-disclosure').filter({ has: page.locator('summary').filter({ hasText: 'Community tools' }) });
-  if (await communityMenu.getAttribute('open') === null) await communityMenu.locator('summary').click();
-  await page.getByRole('link', { name: 'Municipal overview', exact: true }).click();
-  await expect(page.getByText('Fictional municipal view', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Practice monsoon readiness', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Roof area (m²)', { exact: true })).toBeHidden();
+  await page.locator('.example-settings > summary').click();
+  await page.getByLabel('Roof area (m²)', { exact: true }).fill('200');
+  await ownerNav.getByRole('link', { name: 'My tank', exact: true }).click();
+  await expect(page.locator('.example-settings')).not.toHaveAttribute('open');
+  await expect(page.locator('.example-summary')).toContainText('200 m²');
   await page.getByRole('button', { name: 'Back to my property', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Will my tank have enough water?', exact: true })).toBeVisible();
+  await page.goto('/#/municipal');
   await expect(page.getByText('Municipal access required', { exact: true })).toBeVisible();
   const prop = await page.request.get(`/api/v1/buildings/${id}`).then(response => response.json());
   expect(prop.data.effective_catchment_m2).toBe(120);

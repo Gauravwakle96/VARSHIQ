@@ -35,6 +35,13 @@ ECC guidance and project browser tooling support engineering review. A user-auth
 
 ## Additional location and reference audit
 
+The 2026-11-02 map repair rechecked Microsoft's actual LICENSE, README and current
+official dataset index. That index includes `bfppub.z5.web.core.windows.net`; the
+bounded adapter now accepts this exact Microsoft host alongside the existing hosts.
+No source code was copied and no provider setting was enabled automatically. The
+OSM automatic lookup adds a bounded wider neighbourhood retry. Original data
+attribution and the field-verification distinction remain in place.
+
 HydroHarvest (`https://github.com/Sarguru-tech/hydro-harvest`, commit `cd77ebdd87735faf856eff6ba1e0448a88470ebc`) has no LICENSE/LICENCE file. README explicitly reserves a formal OSS licence for future distribution; Java17/Spring Boot3.2.3 and React18/Vite dependencies were inspected. Architectural reference only; no source/UI/datasets copied.
 
 Photon is accessed through its documented HTTP API; its reasonable-use demo conditions and Apache2 source licence were inspected. No Photon source is bundled. Returned OSM location data remains ODbL. The Maharashtra official36-district directory is a bounded attributed import under its portal Copyright Policy, verified2026-11-02. See [LOCATION_DATA.md](docs/LOCATION_DATA.md).

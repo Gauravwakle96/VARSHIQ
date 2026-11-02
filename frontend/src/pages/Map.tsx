@@ -12,6 +12,7 @@ import {
   RotateCcw,
   Search,
   Trash2,
+  ExternalLink,
 } from 'lucide-react'
 import { api, patch, post, query, useApi } from '../api'
 import { useWorkspace } from '../context'
@@ -34,13 +35,15 @@ interface Lookup {
   retrieved_at: string
   attribution: string
   limitations: string[]
+  search_scope?: 'nearby' | 'neighbourhood'
+  lookup_attempts?: { provider: string; status: string; outlines?: number; search_scope?: string }[]
 }
 interface Point {
   latitude: number
   longitude: number
 }
 export default function MapPage() {
-  const { properties, property, selectProperty, refreshProperties, notify, activeLocation } = useWorkspace()
+  const { properties, property, propertiesLoading, selectProperty, refreshProperties, notify, activeLocation } = useWorkspace()
   const [point, setPoint] = useState<Point>(
     activeLocation
       ? { latitude: activeLocation.latitude, longitude: activeLocation.longitude }
@@ -48,7 +51,14 @@ export default function MapPage() {
         ? { latitude: property.latitude, longitude: property.longitude }
         : { latitude: 20.5937, longitude: 78.9629 },
   )
-  const [provider, setProvider] = useState('osm')
+  // Keep the lookup centre separate from the selected roof. Selecting an outline
+  // must not trigger another search that clears that selection.
+  const [searchPoint, setSearchPoint] = useState<Point>(point)
+  const [provider, setProvider] = useState('auto')
+  const [searchRevision, setSearchRevision] = useState(0)
+  const [searchBusy, setSearchBusy] = useState(false)
+  const [searchError, setSearchError] = useState<string | null>(null)
+  const searchRequest = useRef<AbortController | null>(null)
   const [lookup, setLookup] = useState<Lookup | null>(null)
   const [candidate, setCandidate] = useState<Feature | null>(null)
   const [drawing, setDrawing] = useState(false)
@@ -75,27 +85,54 @@ export default function MapPage() {
       .catch(error => { if (!controller.signal.aborted) setError((error as Error).message) })
     return () => controller.abort()
   }, [candidate, manualGeometry])
+  const locationLatitude = activeLocation?.latitude ?? property?.latitude ?? settings.data?.pilot_latitude
+  const locationLongitude = activeLocation?.longitude ?? property?.longitude ?? settings.data?.pilot_longitude
   useEffect(() => {
-    if (activeLocation) setPoint({ latitude: activeLocation.latitude, longitude: activeLocation.longitude })
-    else if (!property && settings.data)
-      setPoint({ latitude: settings.data.pilot_latitude, longitude: settings.data.pilot_longitude })
-  }, [activeLocation, property, settings.data])
-  async function search() {
-    setBusy(true)
-    setError(null)
+    if (locationLatitude == null || locationLongitude == null) return
+    const next = { latitude: locationLatitude, longitude: locationLongitude }
+    setPoint(next)
+    setSearchPoint(next)
     setCandidate(null)
-    try {
-      const response = await api<Lookup>(`/buildings/lookup?${query({ ...point, provider })}`)
-      setLookup(response)
-      notify(
-        `${response.features.length} building footprint${response.features.length === 1 ? '' : 's'} returned by ${response.provider}.`,
-      )
-    } catch (error) {
-      setError((error as Error).message)
-      setLookup(null)
-    } finally {
-      setBusy(false)
+    setManualGeometry(null)
+    setVertices([])
+    setDrawing(false)
+    setArea(null)
+  }, [locationLatitude, locationLongitude, property?.id, activeLocation?.id])
+  useEffect(() => {
+    const controller = new AbortController()
+    searchRequest.current = controller
+    setLookup(null)
+    setSearchError(null)
+    if (propertiesLoading || locationLatitude == null || locationLongitude == null) return () => controller.abort()
+    if (!Number.isFinite(searchPoint.latitude) || Math.abs(searchPoint.latitude) > 85 ||
+        !Number.isFinite(searchPoint.longitude) || Math.abs(searchPoint.longitude) > 180) {
+      setSearchBusy(false)
+      setSearchError('Enter a latitude between −85 and 85 and a longitude between −180 and 180.')
+      return () => controller.abort()
     }
+    setSearchBusy(true)
+    const timer = window.setTimeout(() => {
+      api<Lookup>(`/buildings/lookup?${query({ ...searchPoint, provider })}`, { signal: controller.signal })
+        .then(response => { if (!controller.signal.aborted) setLookup(response) })
+        .catch(error => { if (!controller.signal.aborted) setSearchError((error as Error).message) })
+        .finally(() => { if (!controller.signal.aborted) setSearchBusy(false) })
+    }, 650)
+    return () => { window.clearTimeout(timer); controller.abort() }
+  }, [searchPoint, provider, searchRevision, propertiesLoading, locationLatitude, locationLongitude])
+  function movePoint(next: Point) {
+    searchRequest.current?.abort()
+    setPoint(next)
+    setSearchPoint(next)
+    setLookup(null)
+    setCandidate(null)
+    setManualGeometry(null)
+    setVertices([])
+    setArea(null)
+    setError(null)
+  }
+  function search() {
+    movePoint(point)
+    setSearchRevision(value => value + 1)
   }
   async function finishDrawing() {
     if (vertices.length < 3) {
@@ -132,7 +169,7 @@ export default function MapPage() {
           ...point,
           ...(geometry ? { geometry } : {}),
           estimate_roof: Boolean(geometry),
-          geometry_source: candidate ? provider : 'manual',
+          geometry_source: candidate ? lookup?.provider : 'manual',
           geometry_source_id: candidate
             ? String(candidate.id ?? candidate.properties.source_id ?? candidate.properties.id ?? '')
             : '',
@@ -142,6 +179,7 @@ export default function MapPage() {
     })
   }
   function chooseBuilding(feature: Feature) {
+    if (drawing) return
     setCandidate(feature)
     setManualGeometry(null)
     setArea(null)
@@ -160,7 +198,7 @@ export default function MapPage() {
         geometry,
         latitude: point.latitude,
         longitude: point.longitude,
-        geometry_source: candidate ? provider : 'manual',
+        geometry_source: candidate ? lookup?.provider : 'manual',
         geometry_source_id: candidate
           ? String(candidate.id ?? candidate.properties.source_id ?? candidate.properties.id ?? '')
           : '',
@@ -186,7 +224,7 @@ export default function MapPage() {
     setError(null)
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setPoint({ latitude: position.coords.latitude, longitude: position.coords.longitude })
+        movePoint({ latitude: position.coords.latitude, longitude: position.coords.longitude })
         setBusy(false)
         notify(
           `GPS location received. Reported accuracy: ${number(position.coords.accuracy)} m; check the building position before registration.`,
@@ -206,8 +244,8 @@ export default function MapPage() {
         title="Find the roof. Start the connection."
         description={
           activeLocation
-            ? `${activeLocation.display_name} · Bounded building lookup around the selected place.`
-            : 'Select a real building footprint, draw a manual boundary or register with coordinates.'
+            ? `${activeLocation.display_name} · Nearby building outlines load automatically.`
+            : 'Nearby building outlines load automatically. Select your roof and check that its outline looks right.'
         }
         action={
           <div className="inline-actions">
@@ -227,17 +265,17 @@ export default function MapPage() {
           <MapCanvas
             properties={properties}
             features={lookup?.features ?? []}
+            selected={candidate}
+            fitNeighbourhood={lookup?.search_scope === 'neighbourhood'}
             point={point}
             drawing={drawing}
             vertices={vertices}
             manualGeometry={manualGeometry}
             onPoint={(next) => {
               if (drawing) setVertices((current) => [...current, next])
-              else {
-                setPoint(next)
-                setCandidate(null)
-              }
+              else movePoint(next)
             }}
+            onSearchArea={movePoint}
             onFeature={chooseBuilding}
             onProperty={(item) => {
               selectProperty(item.id)
@@ -246,7 +284,7 @@ export default function MapPage() {
           />
           <div className="map-top-label">
             <span className="status-dot" />
-            <span>{drawing ? `Drawing · ${vertices.length} vertices` : 'Real-world building map'}</span>
+            <span>{drawing ? `Drawing · ${vertices.length} vertices` : searchBusy ? 'Finding nearby buildings…' : 'Real-world building map'}</span>
           </div>
           <div className="map-bottom-label">
             <MousePointer2 size={15} />
@@ -256,19 +294,28 @@ export default function MapPage() {
           </div>
         </div>
         <div className="map-inspector">
-          <Section title="Building lookup" subtitle="Bounded searches around the selected position.">
+          <Section title="Find your building" subtitle="Outlines appear automatically when you choose a place.">
             <div className="form-stack">
+              <div className="map-lookup-status" role="status" aria-live="polite">
+                {searchBusy ? <p>Looking for building outlines… The first search can take a moment.</p> : lookup && (
+                  lookup.features.length ? <p><strong>{lookup.features.length} building outline{lookup.features.length === 1 ? '' : 's'} found</strong><br />
+                    {lookup.provider === 'microsoft' ? 'Microsoft building footprints' : 'OpenStreetMap'} · Select a blue outline.
+                    {lookup.search_scope === 'neighbourhood' && <span className="map-coverage-note">We looked a little farther to find these buildings. Your original pin has not moved.</span>}</p> :
+                    <p><strong>No mapped outlines here yet</strong><br />This does not mean there are no houses.
+                      Check the pin, try another source, or draw your roof outline.</p>
+                )}
+              </div>
               <div className="form-grid compact">
                 <Field label="Latitude">
                   <input
                     type="number"
                     aria-label="Lookup latitude"
-                    min={-90}
-                    max={90}
+                    min={-85}
+                    max={85}
                     step="any"
                     value={point.latitude}
                     onChange={(event) =>
-                      setPoint((current) => ({ ...current, latitude: Number(event.target.value) }))
+                      movePoint({ ...point, latitude: Number(event.target.value) })
                     }
                   />
                 </Field>
@@ -281,28 +328,29 @@ export default function MapPage() {
                     step="any"
                     value={point.longitude}
                     onChange={(event) =>
-                      setPoint((current) => ({ ...current, longitude: Number(event.target.value) }))
+                      movePoint({ ...point, longitude: Number(event.target.value) })
                     }
                   />
                 </Field>
               </div>
-              <Field label="Footprint provider">
+              <Field label="Building outline source">
                 <select
                   value={provider}
                   onChange={(event) => {
                     setProvider(event.target.value)
-                    setLookup(null)
-                    setCandidate(null)
+                    movePoint(point)
                   }}
                 >
+                  <option value="auto">Automatic · available sources</option>
                   <option value="osm">OpenStreetMap</option>
                   <option value="microsoft">Microsoft building footprints</option>
                 </select>
               </Field>
-              <Button loading={busy} onClick={search}>
+              <Button loading={searchBusy} disabled={drawing || busy} onClick={search}>
                 <Search size={16} />
                 Find nearby buildings
               </Button>
+              <InputError error={searchError} />
               <Button variant="secondary" loading={busy} onClick={location}>
                 <LocateFixed size={16} />
                 Use my GPS location
@@ -310,8 +358,11 @@ export default function MapPage() {
               <InputError error={error} />
             </div>
           </Section>
-          <Section title="Manual geometry" subtitle="Draw a boundary when provider coverage is unavailable.">
+          <Section title="Roof not outlined?" subtitle="Check the roof on a map, then draw its boundary here.">
             <div className="form-stack">
+              <a className="button secondary" href={`https://www.google.com/maps/search/?api=1&query=${point.latitude},${point.longitude}`} target="_blank" rel="noreferrer">
+                <ExternalLink size={16} /> Check in Google Maps
+              </a>
               {!drawing ? (
                 <Button
                   variant="secondary"
@@ -439,6 +490,8 @@ export default function MapPage() {
             retrieved_at: lookup.retrieved_at,
             attribution: lookup.attribution,
             limitations: lookup.limitations,
+            search_scope: lookup.search_scope,
+            lookup_attempts: lookup.lookup_attempts,
           }}
         />
       )}
@@ -449,31 +502,37 @@ export default function MapPage() {
 function MapCanvas({
   properties,
   features,
+  selected,
+  fitNeighbourhood,
   point,
   drawing,
   vertices,
   manualGeometry,
   onPoint,
+  onSearchArea,
   onFeature,
   onProperty,
 }: {
   properties: Property[]
   features: Feature[]
+  selected: Feature | null
+  fitNeighbourhood: boolean
   point: Point
   drawing: boolean
   vertices: Point[]
   manualGeometry: Geometry | null
   onPoint: (point: Point) => void
+  onSearchArea: (point: Point) => void
   onFeature: (feature: Feature) => void
   onProperty: (property: Property) => void
 }) {
   const element = useRef<HTMLDivElement>(null)
   const map = useRef<L.Map | null>(null)
   const shapes = useRef<L.LayerGroup | null>(null)
-  const callbacks = useRef({ onPoint, onFeature, onProperty })
+  const callbacks = useRef({ onPoint, onFeature, onProperty, onSearchArea, drawing })
   useEffect(() => {
-    callbacks.current = { onPoint, onFeature, onProperty }
-  }, [onPoint, onFeature, onProperty])
+    callbacks.current = { onPoint, onFeature, onProperty, onSearchArea, drawing }
+  }, [onPoint, onFeature, onProperty, onSearchArea, drawing])
   useEffect(() => {
     if (!element.current) return
     const instance = L.map(element.current, {
@@ -490,6 +549,11 @@ function MapCanvas({
     instance.on('click', (event: L.LeafletMouseEvent) =>
       callbacks.current.onPoint({ latitude: event.latlng.lat, longitude: event.latlng.lng }),
     )
+    instance.on('dragend', () => {
+      if (callbacks.current.drawing || instance.getZoom() < 16) return
+      const centre = instance.getCenter()
+      callbacks.current.onSearchArea({ latitude: centre.lat, longitude: centre.lng })
+    })
     map.current = instance
     const observer = new ResizeObserver(() => instance.invalidateSize())
     observer.observe(element.current)
@@ -500,8 +564,18 @@ function MapCanvas({
     }
   }, [])
   useEffect(() => {
-    map.current?.setView([point.latitude, point.longitude], 17, { animate: false })
+    if (Number.isFinite(point.latitude) && Math.abs(point.latitude) <= 85 &&
+        Number.isFinite(point.longitude) && Math.abs(point.longitude) <= 180) {
+      map.current?.setView([point.latitude, point.longitude], Math.max(map.current.getZoom(), 17), { animate: false })
+    }
   }, [point.latitude, point.longitude])
+  useEffect(() => {
+    if (!fitNeighbourhood || !features.length || !map.current) return
+    const bounds = L.geoJSON({ type: 'FeatureCollection', features } as GeoJsonObject).getBounds()
+    // Include the original pin without updating the selected property/location.
+    bounds.extend(map.current.getCenter())
+    map.current.fitBounds(bounds, { padding: [40, 60], maxZoom: 17, animate: false })
+  }, [features, fitNeighbourhood])
   useEffect(() => {
     const group = shapes.current
     if (!group) return
@@ -514,10 +588,12 @@ function MapCanvas({
     properties.forEach((property) => {
       const layer = property.geometry
         ? L.geoJSON(property.geometry as GeoJsonObject, {
+            interactive: !drawing,
             style: { color: '#0b7c6d', weight: 2, fillOpacity: 0.3 },
           })
         : L.circleMarker([property.latitude, property.longitude], {
             radius: 7,
+            interactive: !drawing,
             color: '#0b7c6d',
             fillOpacity: 0.9,
           })
@@ -530,7 +606,12 @@ function MapCanvas({
         .addTo(group)
     })
     features.forEach((feature) => {
-      L.geoJSON(feature as GeoJsonObject, { style: { color: '#477eb2', weight: 2, fillOpacity: 0.18 } })
+      L.geoJSON(feature as GeoJsonObject, {
+        interactive: !drawing,
+        bubblingMouseEvents: false,
+        style: { color: selected === feature ? '#163b99' : '#2764cc', weight: selected === feature ? 4 : 2,
+          fillOpacity: selected === feature ? 0.4 : 0.18 },
+      })
         .bindTooltip(safeTooltip(String(feature.properties.name ?? 'Provider building footprint')))
         .on('click', (event: L.LeafletMouseEvent) => {
           L.DomEvent.stopPropagation(event.originalEvent)
@@ -540,24 +621,28 @@ function MapCanvas({
     })
     if (manualGeometry)
       L.geoJSON(manualGeometry as GeoJsonObject, {
+        interactive: false,
         style: { color: '#d79c39', weight: 3, fillOpacity: 0.2 },
       }).addTo(group)
     if (vertices.length) {
       L.polyline(
         vertices.map((vertex) => [vertex.latitude, vertex.longitude] as L.LatLngTuple),
-        { color: '#d79c39', dashArray: drawing ? '5 5' : undefined, weight: 3 },
+        { color: '#d79c39', dashArray: drawing ? '5 5' : undefined, weight: 3, interactive: false },
       ).addTo(group)
       vertices.forEach((vertex) =>
         L.circleMarker([vertex.latitude, vertex.longitude], {
           radius: 4,
+          interactive: false,
           color: '#8b651e',
           fillColor: '#f3c36d',
           fillOpacity: 1,
         }).addTo(group),
       )
     }
-    if (!drawing)
+    if (!drawing && Number.isFinite(point.latitude) && Math.abs(point.latitude) <= 85 &&
+        Number.isFinite(point.longitude) && Math.abs(point.longitude) <= 180)
       L.circleMarker([point.latitude, point.longitude], {
+        interactive: false,
         radius: 8,
         color: '#fff',
         weight: 3,
@@ -565,7 +650,7 @@ function MapCanvas({
         fillOpacity: 1,
       }).addTo(group)
     map.current?.getContainer().classList.toggle('drawing-map', drawing)
-  }, [properties, features, point, drawing, vertices, manualGeometry])
+  }, [properties, features, selected, point, drawing, vertices, manualGeometry])
   return (
     <div
       ref={element}

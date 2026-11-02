@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" fill="none">
+  <defs><linearGradient id="sky" x1="0" y1="0" x2="1200" y2="640" gradientUnits="userSpaceOnUse"><stop stop-color="#f4f8ff"/><stop offset="1" stop-color="#dceafd"/></linearGradient><pattern id="rain" width="110" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(18)"><path d="M25 12V33M75 68V88" stroke="#8eb8ec" stroke-width="2" stroke-linecap="round" opacity=".38"/></pattern></defs>
+  <rect width="1200" height="640" fill="url(#sky)"/>
+  <path d="M0 471C200 371 365 534 573 451S967 373 1200 464V640H0Z" fill="#d0e3fa" opacity=".55"/>
+  <g fill="#b4d0f1" opacity=".48"><path d="M614 463V295H724V463Z"/><path d="M756 463V340H871V463Z"/><path d="M908 463V258H1022V463Z"/><path d="M1049 463V310H1154V463Z"/></g>
+  <g stroke="#eaf3ff" stroke-width="8"><path d="M633 318H704M633 348H704M633 378H704M633 408H704M777 365H850M777 395H850M927 285H1003M927 315H1003M927 345H1003M927 375H1003M927 405H1003"/></g>
+  <rect width="1200" height="520" fill="url(#rain)"/>
+  <path d="M0 528C209 496 309 590 572 526C799 471 1009 558 1200 511" stroke="#8db9ed" stroke-width="3" opacity=".4"/>
+  <path d="M0 555C209 523 309 617 572 553C799 498 1009 585 1200 538" stroke="#a5c9f2" stroke-width="3" opacity=".45"/>
+</svg>

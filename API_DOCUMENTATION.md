@@ -43,7 +43,7 @@ uv run python -m app.cli set-role ACCOUNT_EMAIL municipal
 | GET `/buildings/{id}` | Property detail, roof measurements, observations and photo metadata |
 | PATCH `/buildings/{id}` | Validate and update supplied fields; immutable history retained |
 | POST `/buildings/geometry` | Validate WGS84 Polygon/MultiPolygon; return geodesic area/centroid/method |
-| GET `/buildings/lookup?latitude=…&longitude=…&provider=osm` | Bounded real OSM lookup; `microsoft` requires enabling its tile adapter |
+| GET `/buildings/lookup?latitude=…&longitude=…&provider=auto` | Automatic lookup uses enabled sources: local OSM, a wider OSM neighbourhood if empty/unavailable, then enabled Microsoft. Explicit `osm` / `microsoft` requests retain their own source. Returns actual `provider`, `search_scope` and `lookup_attempts`; no property is changed. |
 | POST `/buildings/{id}/measurements` | Record effective catchment, method/evidence, aware timestamp and user/field status |
 | POST `/buildings/{id}/photos` | Multipart `file` JPEG/PNG; bounded safe decoding/re-encoding |
 | GET `/buildings/{id}/photos/{photo_id}` | Private photo download |

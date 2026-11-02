@@ -88,3 +88,19 @@ The user-authorised demo has a persistent simulation disclosure. OSM basemap til
 Rainfall, catchment, collection parameters, tank readings, demand, fictional community buildings and indicative costs in this route are explicit scenario inputs. The existing deterministic Python engines generate their water balances and budget choices. The time anchor is illustrative, not tomorrow's forecast. Demo results carry `simulated_demonstration` and `persisted: false`; no properties, observations, reports, calibrations or municipal statistics are persisted from this route. Public map lookups carry `real_public_geography` with `simulated_unverified` water inputs.
 
 The full feature preview at `/#/demo/features` uses the same boundary. Its seasonal distribution, 2001 wet dates, supply fallback, demand allocation and performance readings are explicitly invented. The daily tank engine evaluates a complete synthetic year; those outputs are separate from live historical provider data. Water-quality sample values and inspection practice stay in browser state. Groundwater depth and infiltration remain null rather than invented. Downloaded PDFs carry a SIMULATED title and full source assumptions; they are not stored as real property assessments. The same component can be opened from a private planning property, but preview actions cannot create actual measurements, apply calibration, grant permissions or change the registered building.
+
+## Automatic building-map coverage
+
+Signed-in automatic lookups first request OSM ways in a +/-0.003-degree box. If this
+is empty or unavailable, they try a +/-0.01-degree neighbourhood box (approximately
+1.1 km north/south from the pin); enabled Microsoft is a final alternative. These
+are provider footprint estimates, not imagery-based recognition by VARSHIQ. The
+response identifies the actual provider, search scope and attempted sources. The
+map may zoom out to show nearby outlines but does not move or verify a property.
+
+The official OSM map-API fallback uses the same search extent as Overpass, a 10 MB
+response limit and a 300-outline cap. Search scopes have separate one-day process
+cache entries. Microsoft retains its download/decompression bounds and optional
+configuration. Google Maps is an external visual cross-check; no imagery or roof
+geometry is scraped from Google. Missing outlines never establish an absence of
+houses, and selecting a nearby outline does not establish ownership.

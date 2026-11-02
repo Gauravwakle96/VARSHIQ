@@ -24,7 +24,9 @@ Primary UI reference: [Leaflet 1.9 API](https://leafletjs.com/reference.html), i
 
 ## Full feature workspace
 
-`/#/demo/features?feature=%2Fquality` opens an anonymous preview of a selected navigation item. All 27 items are covered, including residential/commercial/community contexts and role-protected municipal/settings workflows. Desktop uses grouped navigation; mobile/tablet uses an accessible grouped selector. The original animated tour links to this workspace. A private property marked `planning_assumptions` offers **Simulate this feature**; **Return to live workspace** restores the existing page without changing records.
+`/#/demo/features?feature=%2Fmaintenance` opens an anonymous preview. The navigation has six sections matching the main workspace, with related pages in contextual links and an accessible mobile selector. Legacy specialist preview URLs remain compatible without appearing in the everyday menu. The original animated tour links to this workspace. A private property marked `planning_assumptions` offers **Try an example**; **Back to my property** restores the existing page without changing records. Example controls are collapsed on entry behind **Adjust example**. Annual rainfall and budget controls appear only on relevant pages.
+
+Improvements also exposes real external supplier contact and shop links. Its request builder uses only text entered by the visitor, never simulated property dimensions or private records. Opening a draft does not send a message, book an installation or create an order; see [external supplier boundaries](INSTALLATION_AND_ARTWORK.md).
 
 Each preview explains its purpose, beneficiary, source assumptions and missing real-world inputs. Relevant controls update bounded fictional profiles. Map/location pages use actual public OSM geography. WaterTwin reuses the existing animated deterministic timeline, including manual stepping and reduced motion. Other previews include:
 

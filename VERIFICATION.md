@@ -107,3 +107,51 @@ Executed checks for this update:
 - Before migration `0004`, the actual local API listener was stopped and a SQLite-consistent backup was created in ignored local storage. After upgrading to head, all original property values and table counts matched the pre-upgrade snapshot; existing properties received empty map provenance. No real home outline was selected or confirmed automatically, and no fictional production property or actual observation was inserted.
 
 Evidence stays under ignored `artifacts/features/`, `artifacts/roof/` and automated-test result folders. Databases, backups, uploads and credentials remain outside source control. Local checks do not establish hosted deployment, current PostGIS/container CI for this revision, an actual field pilot or professional engineering certification. Those requirements remain separate from the verified workspace update.
+
+## Blue workspace, installation enquiries and automatic building map — 2026-11-02
+
+The owner navigation now has six primary sections with contextual page tabs. The
+workspace uses a blue palette and original local rainwater-harvesting illustrations.
+Improvements includes external supplier contact/parts-store links and a visible
+request draft; no message, payment, booking or private property data is sent
+automatically. Recharge detail remains available in a clearly labelled disclosure.
+
+The signed-in map loads real outlines automatically. Empty local coverage triggers
+a bounded wider OSM neighbourhood lookup, with enabled Microsoft as an alternative.
+The map fits those outlines without relocating the property pin. Location/property
+changes cancel superseded requests; choosing a roof and drawing points retain their
+selection. Source attribution, confirmation and field-verification boundaries remain.
+
+Executed checks:
+
+- Backend suite: **282 passed**, with the existing Starlette/httpx deprecation
+  warning. New cases exercise bounded fallback, caching, source provenance,
+  disabled providers, empty coverage/outages and the current Microsoft tile host.
+  Ruff passed for application, tests and Alembic. An initial lint command used the
+  nonexistent `migrations` path; it was corrected to the repository's `alembic` path.
+- Frontend ESLint, TypeScript and production build passed. Root/frontend npm audits
+  reported zero vulnerabilities; the installed locked Python environment's
+  `pip_audit` check reported no known vulnerabilities. No dependencies were added.
+- Full Playwright regression: **9 passed**. It covers existing live weather,
+  WaterTwin, reporting, operational records and demos, plus automatic map loading,
+  property switching, cancelled stale responses, selection retention, empty/error
+  handling, manual drawing, navigation and supplier request privacy. The map-only
+  check passed again after adjusting screenshot capture to start at the page top.
+  An initial map test expected the old longitude after selecting a different
+  outline; the assertion was corrected to the actual selected point.
+- Map layouts passed axe WCAG2/2.1 AA scans at 390, 768 and 1440 px. Map and final
+  installation-page screenshots were visually inspected. The earlier blue overview
+  and maintenance layouts were also inspected. These checks cover tested states,
+  not every possible accessibility interaction.
+- A read-only provider probe found no OSM or Microsoft outlines at the saved pin's
+  immediate locality. The wider OSM extract returned **71 real outlines**. The
+  updated authenticated local map API returned the same 71 with its actual source
+  and `neighbourhood` scope; the saved property pin was unchanged. Private location
+  and account details remain outside Git. No house was claimed as the user's roof.
+- The existing API restart was rejected by automatic approval (`blocked by policy`).
+  A separate updated API/frontend was started at ports 8002/5175. Its health and
+  authenticated map endpoint were checked; the original 8000 API was not restarted.
+
+Local browser artefacts, private databases and logs stay ignored. No hosted public
+deployment, installation partnership, completed purchase, new field measurement,
+verified home outline or completed field pilot is claimed by this update.

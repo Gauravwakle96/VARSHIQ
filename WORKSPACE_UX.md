@@ -1,34 +1,49 @@
-# Everyday property workspace
+# Simple blue workspace
 
-The owner workspace answers three immediate questions: will it rain, will the tank fill,
-and what actually happened? Its overview uses the selected property's saved inputs;
-it does not fetch or invent a forecast to populate the screen.
+The workspace has six destinations: Overview, My property, Rainfall, My tank,
+Records and Reports. Each page shows only the related tasks for that destination.
+The sidebar has no nested More tools catalogue.
 
-- Six everyday navigation links remain visible. All 27 destinations remain reachable
-  through one **More tools** menu with expandable categories. Other authorised roles keep their
-  existing specialist navigation and permissions.
-- Address, collection settings and tank comparisons open on demand. Invalid required
-  fields automatically reveal their section before browser validation focuses them.
-- Advanced menu categories use a single-open accordion to keep the sidebar compact;
-  the category containing the current page opens automatically.
-- Owner-facing labels use ordinary language. Internal API paths and existing data
-  contracts retain their identifiers.
-- Estimated property details have a persistent concise disclosure. A measured roof
-  requires recorded field verification; a tank level shows its measurement status and
-  timestamp. The tank meter reflects saved data, not a live sensor.
-- **Try an example** enables a stateless simulated feature preview. **Back to my
-  property** returns to actual property workflows. Switching properties resets the
-  preview; no preview action updates saved values or creates measurement evidence.
-- Public judge demos remain accessible beside sign-in and independently of any
-  owner's account. Example rainfall is separate from coordinate-based live forecasts.
+## Design contract
 
-The layout extends the existing fonts, colors and components. Mobile navigation
-retains focus and Escape handling, including when a menu expands. Reduced-motion
-preferences disable tank-meter transitions. Browser verification covers six initial
-links, access to all destinations, estimate disclosure, hidden-field validation,
-mobile keyboard use, preserved private data and representative viewport layouts.
+- My property groups details and the building map. Add-property, location search
+  and field-measurement actions stay in the property workflow.
+- Rainfall groups live forecasts and past rainfall. My tank groups WaterTwin,
+  tank sizing and suggested improvements; the quick calculator is a contextual link.
+- Records groups readings, water use and maintenance. Supply and prediction-history
+  links are contextual record tools, rather than extra sidebar destinations.
+- Reports includes a community summary when multiple properties or an authorised
+  municipal role make it useful. Municipal/admin users keep an authorised community
+  workspace and admin settings. Permissions remain enforced by the backend.
+- Standalone groundwater, water quality, commercial dashboards and budget tools
+  leave the everyday navigation. Existing routes and stored evidence remain intact
+  for compatibility; they are not advertised as essential steps for a homeowner.
+- The public feature demo uses the same six-part hierarchy. Its results appear
+  before optional explanations. A single collapsed Adjust example row contains
+  sample inputs; annual and budget settings appear only where relevant.
+- Deep navy navigation, blue actions, white surfaces and a pale blue canvas use the
+  existing licensed typography. Status/error colors retain their meaning. Details,
+  focus rings, clear active states and responsive tabs support keyboard/mobile use.
+- Saved estimates, real forecasts, map estimates and field measurements retain
+  their disclosures. Demo edits are stateless and never become actual evidence.
+
+Acceptance: six main owner links, no nested catalogue, contextual route highlighting,
+closed example settings on entry, usable mobile navigation/tabs, tested focus and
+contrast, and successful existing map/model/report flows. No new dependencies or
+database migrations are needed for this update. Original harvesting
+illustrations add quiet background context. Improvements includes installation
+enquiries and an external parts store; see [supplier and artwork evidence](docs/INSTALLATION_AND_ARTWORK.md).
 
 ## Map estimate and roof guidance
+
+The signed-in building map retrieves outlines automatically after opening, selecting
+a location/property, entering coordinates, granting GPS permission or dragging the
+map at building zoom (16+). Requests are debounced and cancelled when superseded.
+Selecting an outline or drawing points does not trigger another lookup. A wider
+neighbourhood search is identified explicitly and fits the view without changing the
+original pin. The actual source remains attached to the selected outline, including
+when automatic lookup falls back to an enabled Microsoft adapter. A zero-result
+response is a coverage message, separate from a provider failure.
 
 Users may select an OSM/Microsoft building outline, draw a boundary on the real map,
 or enter a roof area themselves. The server calculates WGS84 geodesic polygon area,

@@ -2,21 +2,23 @@
 
 :root {
   font-family: 'DM Sans', sans-serif;
-  color: #18363a;
-  background: #f5f6f2;
+  color: #172f52;
+  background: #f3f6fc;
   font-synthesis: none;
   font-weight: 400;
   font-size: 14px;
-  --ink: #17353a;
-  --nav: #102e33;
-  --muted: #6d7c7a;
-  --line: #e1e7e0;
-  --teal: #087d6b;
-  --teal-dark: #076452;
-  --canvas: #f5f6f2;
+  --ink: #172f52;
+  --nav: #0c2040;
+  --muted: #5d708d;
+  --line: #dce5f2;
+  --accent: #245fd6;
+  --accent-dark: #1a48aa;
+  --teal: var(--accent);
+  --teal-dark: var(--accent-dark);
+  --canvas: #f3f6fc;
   --white: #fff;
-  --radius: 14px;
-  --shadow: 0 5px 20px #16382a05;
+  --radius: 16px;
+  --shadow: 0 4px 20px #193c7006;
 }
 * {
   box-sizing: border-box;
@@ -323,16 +325,6 @@ select {
 .nav-group {
   margin-top: 16px;
 }
-.nav-disclosure { margin: 2px 0; }
-.nav-disclosure summary {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  list-style: none; padding: 12px; min-height: 44px; color: #b2c9bd;
-  font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 7px;
-}
-.nav-disclosure summary::-webkit-details-marker { display: none; }
-.nav-disclosure summary:hover { color: #fff; background: #c5ead00b; }
-.nav-disclosure[open] > summary svg { transform: rotate(180deg); }
-.nav-disclosure .nav-link { padding-left: 18px; }
 .nav-label {
   font-size: 9px;
   color: #789d8e;
@@ -4284,12 +4276,6 @@ th {
 @media (prefers-reduced-motion: reduce) { .home-tank-meter > span { transition: none; } }
 
 /* Roof setup keeps map evidence, user choice and water guidance together. */
-.nav-more { margin-top: 16px; border-top: 1px solid #35534d; padding-top: 8px; }
-.nav-more > summary { display: flex; justify-content: space-between; align-items: center; padding: 12px;
-  color: #c3d9d2; cursor: pointer; list-style: none; font-size: 12px; font-weight: 600; min-height: 44px; }
-.nav-more > summary::-webkit-details-marker { display: none; }
-.nav-more[open] > summary svg { transform: rotate(180deg); }
-.nav-more .nav-disclosure { margin-left: 4px; }
 .roof-methods { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
 .roof-area-input { margin-bottom: 22px; }
 .roof-map-estimate { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid #d4e3de;

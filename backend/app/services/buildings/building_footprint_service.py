@@ -31,17 +31,53 @@ def quadkey(latitude, longitude, zoom=9):
     )
 
 
-async def lookup(db, latitude, longitude, provider="osm"):
+async def lookup(db, latitude, longitude, provider="osm", *, neighbourhood=False):
     if not -85 <= latitude <= 85 or not -180 <= longitude <= 180:
         raise HTTPException(422, "Invalid building lookup coordinates")
-    key = (provider, round(latitude, 4), round(longitude, 4))
+    if provider == "auto":
+        attempts = []
+        available = []
+        if settings.osm_enabled:
+            available.extend([("osm", False), ("osm", True)])
+        if settings.microsoft_enabled:
+            available.append(("microsoft", False))
+        if not available:
+            raise HTTPException(503, "No building outline source is enabled. Draw a roof outline or enter its area.")
+        last_result = None
+        for source, wider in available:
+            try:
+                result = await lookup(db, latitude, longitude, source, neighbourhood=wider)
+                attempts.append({"provider": source, "status": "connected", "outlines": len(result["features"]),
+                                 "search_scope": result["search_scope"]})
+                last_result = result
+                if result["features"]:
+                    return {**result, "lookup_attempts": attempts}
+            except HTTPException as exc:
+                if exc.status_code not in (502, 503):
+                    raise
+                attempts.append({"provider": source, "status": "unavailable",
+                                 "search_scope": "neighbourhood" if wider else "nearby"})
+        if last_result is not None:
+            return {**last_result, "lookup_attempts": attempts, "limitations": [
+                *last_result["limitations"],
+                "No outlines were returned at this pin. This does not establish that there are no buildings.",
+                "Check the location or draw a boundary. Some sources may be disabled or unavailable.",
+            ]}
+        raise HTTPException(502, "Building outline sources are unavailable. Retry or draw a roof outline.")
+    if provider == "osm" and not settings.osm_enabled:
+        raise HTTPException(503, "OpenStreetMap lookup is disabled")
+    if provider == "microsoft" and not settings.microsoft_enabled:
+        raise HTTPException(503, "Microsoft footprints disabled; enable locality tile access after reviewing CDLA terms")
+    key = (provider, round(latitude, 4), round(longitude, 4), neighbourhood)
     if key in _cache and now() - datetime.fromisoformat(_cache[key]["retrieved_at"]) < timedelta(days=1):
         return {**_cache[key], "cache": True}
     try:
         if provider == "osm":
             if not settings.osm_enabled:
                 raise HTTPException(503, "OpenStreetMap lookup is disabled")
-            radius = 0.003
+            # Widen only after an empty/failed local lookup, staying within a
+            # bounded neighbourhood. Never relocate the property's coordinates.
+            radius = 0.01 if neighbourhood else 0.003
             query = f"[out:json][timeout:20];way[building]({latitude - radius},{longitude - radius},{latitude + radius},{longitude + radius});out geom 300;"
             async with httpx.AsyncClient(timeout=30) as client:
                 try:
@@ -49,7 +85,7 @@ async def lookup(db, latitude, longitude, provider="osm"):
                     response.raise_for_status()
                     raw = response.json()
                 except (httpx.HTTPError, ValueError):
-                    raw = await osm_core_extract(client, latitude, longitude)
+                    raw = await osm_core_extract(client, latitude, longitude, radius=radius)
             features = []
             for element in raw.get("elements", []):
                 coords = [[point["lon"], point["lat"]] for point in element.get("geometry", [])]
@@ -94,13 +130,14 @@ async def lookup(db, latitude, longitude, provider="osm"):
                 "Only the required quadkey tile was processed; download/decompression limits apply.",
             ]
         else:
-            raise HTTPException(422, "Choose osm or microsoft; manual drawing is always available")
+            raise HTTPException(422, "Choose auto, osm or microsoft; manual drawing is always available")
         result = {
             "features": features,
             "provider": provider,
             "retrieved_at": now().isoformat(),
             "attribution": attribution,
             "limitations": limitations,
+            "search_scope": "neighbourhood" if neighbourhood else "nearby",
             "cache": False,
         }
         if len(_cache) >= 64:
@@ -129,9 +166,8 @@ async def lookup(db, latitude, longitude, provider="osm"):
         ) from exc
 
 
-async def osm_core_extract(client, latitude, longitude):
+async def osm_core_extract(client, latitude, longitude, *, radius=0.003):
     """Small official map extract fallback when Overpass is unavailable."""
-    radius = 0.002
     bbox = f"{longitude - radius},{latitude - radius},{longitude + radius},{latitude + radius}"
     content = bytearray()
     async with client.stream(
@@ -188,7 +224,11 @@ async def microsoft_extract(latitude, longitude):
         for row in rows:
             url = row.get("Url", "")
             if not url.startswith(
-                ("https://bfppub.blob.core.windows.net/", "https://minedbuildings.z5.web.core.windows.net/")
+                (
+                    "https://bfppub.blob.core.windows.net/",
+                    "https://bfppub.z5.web.core.windows.net/",
+                    "https://minedbuildings.z5.web.core.windows.net/",
+                )
             ):
                 raise ValueError("Building index contains an unapproved tile host")
             compressed = bytearray()

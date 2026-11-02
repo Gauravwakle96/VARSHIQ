@@ -1,26 +1,13 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { motion, MotionConfig } from 'framer-motion'
 import {
   ArrowUpRight,
   Building2,
-  ChartNoAxesCombined,
-  CircleHelp,
-  CloudRain,
   Droplets,
-  FileText,
-  Gauge,
-  LayoutDashboard,
   LogOut,
-  Map,
   Menu,
-  MessageSquare,
-  Plus,
-  Settings,
   ShieldCheck,
-  SlidersHorizontal,
-  Users,
-  Waves,
   X,
 } from 'lucide-react'
 import { api, post, setCsrf, useApi } from './api'
@@ -29,8 +16,10 @@ import { WorkspaceContext } from './context'
 import { Chip, date, ErrorState, Loading } from './components/ui'
 import { AuthPage, LandingPage } from './pages/Auth'
 import WorkspaceNavigation from './components/WorkspaceNavigation'
+import WorkspaceSectionNav from './components/WorkspaceSectionNav'
 import { workspaceLabel } from './components/workspaceNavigationData'
 import './features/demo/featureSandbox.css'
+import './workspace.css'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const PropertyPages = lazy(() => import('./pages/Property'))
@@ -43,61 +32,6 @@ const OperationsPages = lazy(() => import('./pages/Operations'))
 const DemoPage = lazy(() => import('./pages/Demo'))
 const DemoWorkspace = lazy(() => import('./pages/DemoWorkspace'))
 const FeatureSandbox = lazy(() => import('./features/demo/FeatureSandbox'))
-
-const groups = [
-  {
-    label: 'Place & operations',
-    links: [
-      { to: '/locations', label: 'Select location', icon: Map },
-      { to: '/water-sources', label: 'Water sources', icon: Droplets },
-      { to: '/consumption', label: 'Water consumption', icon: Gauge },
-      { to: '/maintenance', label: 'Maintenance & readiness', icon: ShieldCheck },
-      { to: '/quality', label: 'Water quality', icon: CircleHelp },
-      { to: '/groundwater', label: 'Groundwater & soil', icon: Waves },
-      { to: '/community-budget', label: 'Community budget', icon: SlidersHorizontal },
-    ],
-  },
-  {
-    label: 'Workspace',
-    links: [
-      { to: '/', label: 'Overview', icon: LayoutDashboard },
-      { to: '/map', label: 'Building map', icon: Map },
-      { to: '/register', label: 'Register property', icon: Plus },
-      { to: '/property', label: 'Property details', icon: Building2 },
-      { to: '/verify', label: 'Roof verification', icon: ShieldCheck },
-    ],
-  },
-  {
-    label: 'Water intelligence',
-    links: [
-      { to: '/forecast', label: 'Rainfall forecast', icon: CloudRain },
-      { to: '/historical', label: 'Historical rainfall', icon: ChartNoAxesCombined },
-      { to: '/twin', label: 'WaterTwin', icon: Waves },
-      { to: '/calculator', label: 'Rainwater calculator', icon: Droplets },
-      { to: '/optimiser', label: 'Storage optimiser', icon: SlidersHorizontal },
-      { to: '/recommendations', label: 'Recommendations', icon: CircleHelp },
-    ],
-  },
-  {
-    label: 'Field & community',
-    links: [
-      { to: '/observations', label: 'Field observations', icon: Gauge },
-      { to: '/calibration', label: 'Performance history', icon: ChartNoAxesCombined },
-      { to: '/community', label: 'Locality network', icon: Users },
-      { to: '/commercial', label: 'Commercial', icon: Building2 },
-      { to: '/municipal', label: 'Municipal', icon: Users },
-    ],
-  },
-  {
-    label: 'Tools',
-    links: [
-      { to: '/assistant', label: 'Water assistant', icon: MessageSquare },
-      { to: '/reports', label: 'Assessment reports', icon: FileText },
-      { to: '/sources', label: 'Data sources', icon: CloudRain },
-      { to: '/settings', label: 'Settings', icon: Settings },
-    ],
-  },
-]
 
 export default function App() {
   const location = useLocation()
@@ -288,25 +222,7 @@ function WorkspaceApp() {
                 My water workspace<small>Your properties, kept private</small>
               </div>
             </div>
-            {user.role === 'owner' ? <WorkspaceNavigation /> : <nav>
-              {groups.map((group) => (
-                <div className="nav-group" key={group.label}>
-                  <div className="nav-label">{group.label}</div>
-                  {group.links.map(({ to, label, icon: Icon }) => (
-                    <NavLink
-                      key={to}
-                      end={to === '/'}
-                      to={to}
-                      className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                    >
-                      <Icon size={17} />
-                      <span>{label}</span>
-                      {label === 'WaterTwin' && <span className="nav-new">TWIN</span>}
-                    </NavLink>
-                  ))}
-                </div>
-              ))}
-            </nav>}
+            <WorkspaceNavigation />
             <div className="sidebar-bottom">
               <div className="avatar">{user.name.charAt(0).toUpperCase()}</div>
               <div className="user-detail">
@@ -333,9 +249,7 @@ function WorkspaceApp() {
                 <span className="breadcrumb">
                   Workspace <span>/</span>{' '}
                   <strong>
-                    {(user.role === 'owner' ? workspaceLabel(location.pathname) :
-                      groups.flatMap((group) => group.links).find((link) => link.to === location.pathname)?.label)
-                      ?? 'My water'}
+                    {workspaceLabel(location.pathname)}
                   </strong>
                 </span>
               </div>
@@ -387,6 +301,7 @@ function WorkspaceApp() {
                       : 'Ready for your first property'}
                 </Chip>
               </div>
+              <WorkspaceSectionNav />
               {buildings.error && <ErrorState error={buildings.error} retry={buildings.reload} />}
               {property?.measurement_status === 'planning_assumptions' && (
                 <section className={`planning-bar ${simulationMode ? 'example-active' : ''}`} aria-label="Data status">

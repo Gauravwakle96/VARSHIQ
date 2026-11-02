@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { patch, post, useApi } from '../api'
 import { useWorkspace } from '../context'
+import InstallationHelp from '../components/InstallationHelp'
 import type { Observation, Report, Source } from '../types'
 import {
   Button,
@@ -105,7 +106,7 @@ function RecommendationPage() {
     <>
       <PageTitle
         eyebrow="HARVESTING SYSTEM INTELLIGENCE"
-        title="Recommendations with reasons."
+        title="Make more of your rainwater."
         description={`${property?.name} · Available evidence, site constraints and missing information shape every recommendation.`}
         action={
           <Button loading={busy} onClick={generate}>
@@ -117,11 +118,7 @@ function RecommendationPage() {
       <InputError error={error} />
       {saved.loading && <Loading text="Loading property recommendations…" />}
       {saved.error && <ErrorState error={saved.error} retry={saved.reload} />}
-      <Notice title="Recharge is preliminary" tone="warning">
-        Satellite imagery does not establish aquifer or soil suitability. Recharge structures require
-        appropriate groundwater, soil, contamination and field-engineering assessment before design or
-        installation.
-      </Notice>
+      <InstallationHelp />
       {!data && !saved.loading && (
         <Section title="Start with your site's evidence">
           <Empty
@@ -132,30 +129,23 @@ function RecommendationPage() {
       )}
       {data && (
         <>
-          <div className="recommendation-grid">
-            {data.items.map((item, index) => (
-              <article className="recommendation-card" key={`${item.type}-${index}`}>
-                <div className="recommendation-card-head">
-                  <span className="recommendation-icon">
-                    <ShieldCheck size={21} />
-                  </span>
-                  <Chip
-                    tone={
-                      item.status.includes('require') || item.status.includes('preliminary')
-                        ? 'amber'
-                        : 'blue'
-                    }
-                  >
-                    {humanise(item.status)}
-                  </Chip>
-                </div>
-                <h2>{item.title}</h2>
-                <p>{item.reason}</p>
-                <Evidence title="Engineering assumptions" value={item.assumptions} />
-                <Evidence title="Information still needed" value={item.missing_information} />
-              </article>
-            ))}
+          <div className="recommendation-grid primary-recommendation">
+            {data.items.filter(item => !rechargeKinds.has(item.type)).map((item, index) =>
+              <RecommendationCard key={`${item.type}-${index}`} item={item} />)}
           </div>
+          {data.items.some(item => rechargeKinds.has(item.type)) && (
+            <details className="friendly-details recharge-options panel">
+              <summary>Recharge options · professional site assessment needed</summary>
+              <Notice title="Recharge is preliminary" tone="warning">
+                Satellite imagery does not establish soil or aquifer suitability. Recharge structures need
+                field checks, local permissions and an appropriate engineering assessment.
+              </Notice>
+              <div className="recommendation-grid">
+                {data.items.filter(item => rechargeKinds.has(item.type)).map((item, index) =>
+                  <RecommendationCard key={`${item.type}-${index}`} item={item} />)}
+              </div>
+            </details>
+          )}
           <Evidence
             title="Rain readiness & assessment limitations"
             value={{ readiness: data.readiness, limitations: data.limitations }}
@@ -174,6 +164,20 @@ function RecommendationPage() {
       </div>
     </>
   )
+}
+const rechargeKinds = new Set(['recharge_pit', 'recharge_well', 'recharge_trench', 'percolation'])
+function RecommendationCard({ item }: { item: Recommendation['items'][number] }) {
+  return <article className="recommendation-card">
+    <div className="recommendation-card-head">
+      <span className="recommendation-icon"><ShieldCheck size={21} /></span>
+      <Chip tone={item.status.includes('require') || item.status.includes('preliminary') ? 'amber' : 'blue'}>
+        {humanise(item.status)}
+      </Chip>
+    </div>
+    <h2>{item.title}</h2><p>{item.reason}</p>
+    <Evidence title="Engineering assumptions" value={item.assumptions} />
+    <Evidence title="Information still needed" value={item.missing_information} />
+  </article>
 }
 const localInput = () =>
   new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)

@@ -11,9 +11,11 @@ export default function HomeOverview({ property }: { property: Property }) {
     ? Math.min(100, Math.max(0, property.current_storage_l / property.tank_capacity_l * 100)) : null
   return (
     <>
+      <div className="home-intro">
       <PageTitle eyebrow="MY WATER OVERVIEW" title={property.name}
         description="See what rain could bring, plan your tank, and record what you measure."
         action={<Link to="/property" className="button secondary">Edit property details <ArrowRight size={16} /></Link>} />
+      </div>
       <div className="home-actions" aria-label="Start here">
         {[
           { to: '/forecast', title: 'Will it rain?', description: 'See tomorrow’s rain and the week ahead.', icon: CloudRain },
@@ -67,10 +69,10 @@ export default function HomeOverview({ property }: { property: Property }) {
         <summary>Explore more tools <ArrowRight size={16} /></summary>
         <div className="quick-tools">
           <Link to="/optimiser"><Waves size={21} /><div><strong>Compare tank sizes</strong><span>See which capacity could meet your needs.</span></div><ArrowRight size={17} /></Link>
-          <Link to="/recommendations"><Ruler size={21} /><div><strong>Suggested improvements</strong><span>Review options and what needs checking on site.</span></div><ArrowRight size={17} /></Link>
+          <Link to="/recommendations"><Ruler size={21} /><div><strong>Suggested improvements</strong><span>Explore system options, installation help and parts.</span></div><ArrowRight size={17} /></Link>
           <Link to="/reports"><CloudRain size={21} /><div><strong>Download my report</strong><span>Share your inputs, estimates and sources.</span></div><ArrowRight size={17} /></Link>
         </div>
-        <p className="muted">Select another property in the header to view its details. Community and maintenance tools are in the menu.</p>
+        <p className="muted">Select another property in the header to view its details. Readings and maintenance are together in Records.</p>
       </details>
     </>
   )

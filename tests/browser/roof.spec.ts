@@ -28,7 +28,8 @@ test('map outline confirmation, area correction and nearby water guidance are fu
   } }) }));
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/#/map');
-  await page.getByRole('button', { name: 'Find nearby buildings', exact: true }).click();
+  // Building outlines load without a search click.
+  await expect(page.getByText('1 building outline found', { exact: true })).toBeVisible();
   await page.getByLabel('Choose a building outline').selectOption('0');
   await expect(page.getByText(/m² map-estimated area/)).toBeVisible();
   const save = page.getByRole('button', { name: 'Use this estimate for my property', exact: true });
@@ -79,4 +80,27 @@ test('map outline confirmation, area correction and nearby water guidance are fu
   await expect(page.locator('.roof-advice-answer')).toContainText(answer.answer);
   expect(answer.answer).toContain('drains and filters');
   expect(answer.sources.some(item => item.type === 'backend_recommendation')).toBe(true);
+  // A real external supplier can be contacted without creating a booking or leaking saved details.
+  await page.goto('/#/recommendations');
+  await expect(page.getByRole('heading', { name: 'No harvesting system yet?', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Browse & order parts', exact: false })).toHaveAttribute('href', 'https://shop.rainyfilters.com/');
+  await page.getByRole('button', { name: 'Ask about installation', exact: true }).click();
+  await expect(page.getByLabel('City or locality', { exact: false })).toHaveValue('');
+  await page.getByLabel('City or locality', { exact: false }).fill('Pune');
+  const request = await page.getByLabel('Your request draft', { exact: true }).inputValue();
+  expect(request).toContain('in Pune');
+  expect(request).not.toContain(id);
+  expect(request).not.toContain('AUTOMATED TEST');
+  const whatsapp = await page.getByRole('link', { name: 'Review on WhatsApp', exact: false }).getAttribute('href');
+  expect(new URL(whatsapp!).searchParams.get('text')).toBe(request);
+  await expect(page.getByRole('link', { name: 'Use contact form', exact: false })).toHaveAttribute('href', 'https://www.rainyfilters.com/contact-us/enquire');
+  await page.getByLabel('What do you need?', { exact: true }).selectOption('repair or an upgrade of a rainwater harvesting system');
+  await expect(page.getByLabel('Your request draft', { exact: true })).toHaveValue(/repair or an upgrade/);
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 1000 }]) {
+    await page.setViewportSize(viewport);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1)).toBe(false);
+    const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+    expect(axe.violations.map(item => item.id)).toEqual([]);
+    await page.screenshot({ path: `artifacts/roof/installation-${viewport.width}.png`, fullPage: true });
+  }
 });

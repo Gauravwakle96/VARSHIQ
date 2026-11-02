@@ -1,6 +1,6 @@
 import { useCallback, useState, type Dispatch, type SetStateAction } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Download, FlaskConical, RotateCcw } from 'lucide-react'
+import { Download, FlaskConical, RotateCcw, SlidersHorizontal } from 'lucide-react'
 import {
   Button,
   Chip,
@@ -17,6 +17,7 @@ import { defaults, profiles, type DemoInputs, type DemoResult } from './data'
 import { previewFeature } from './featureCatalogue'
 import { useDemo } from './useDemo'
 import DemoMap from './DemoMap'
+import InstallationHelp from '../../components/InstallationHelp'
 import WaterScene from './WaterScene'
 import './demo.css'
 import './featureSandbox.css'
@@ -74,16 +75,16 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
           <FlaskConical size={14} /> Fictional data · no records saved
         </Chip>
       </div>
-      {compact ? (
-        <details className="friendly-details panel">
-          <summary>About this example and what you need for real use</summary>
-          <p>{feature.benefit}</p><p>{feature.liveNeeds}</p>
-        </details>
-      ) : <Notice title="Who this helps">{feature.benefit}</Notice>}
       {waterControls && (
-        <>
-          <div className="feature-controls panel">
-            <Field label="Illustrative building profile">
+        <details className="example-settings" key={`settings-${feature.path}`}>
+          <summary>
+            <span className="example-summary"><strong>Example inputs</strong>
+              <span>{number(inputs.area_m2)} m² roof · {number(inputs.capacity_l)} L tank · {number(inputs.rainfall_mm)} mm rain</span>
+            </span>
+            <span className="example-adjust"><SlidersHorizontal size={16} /> Adjust example</span>
+          </summary>
+          <div className="feature-controls">
+            <Field label="Building type">
               <select
                 value={inputs.profile}
                 onChange={(event) => {
@@ -104,7 +105,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
                 ))}
               </select>
             </Field>
-            <Field label="Synthetic rainfall pattern">
+            <Field label="Rain pattern">
               <select
                 value={inputs.weather}
                 onChange={(event) => {
@@ -122,7 +123,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
               </select>
             </Field>
             <NumberControl
-              label="Synthetic 48-hour rain (mm)"
+              label="Rain over 2 days (mm)"
               field="rainfall_mm"
               min={0}
               max={120}
@@ -130,7 +131,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
               setInputs={setInputs}
             />
             <NumberControl
-              label="Assumed catchment (m²)"
+              label="Roof area (m²)"
               field="area_m2"
               min={10}
               max={5000}
@@ -138,7 +139,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
               setInputs={setInputs}
             />
             <NumberControl
-              label="Example tank capacity (L)"
+              label="Tank size (L)"
               field="capacity_l"
               min={100}
               max={50000}
@@ -146,7 +147,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
               setInputs={setInputs}
             />
             <NumberControl
-              label="Example demand (L/day)"
+              label="Daily water use (L/day)"
               field="daily_demand_l"
               min={0}
               max={30000}
@@ -160,7 +161,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
             </div>
           </div>
           <details className="feature-assumption-controls">
-            <summary>Collection, starting storage and annual assumptions</summary>
+            <summary>More example settings</summary>
             <div className="form-grid">
               <NumberControl
                 label="Assumed runoff coefficient"
@@ -196,6 +197,7 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
                 inputs={inputs}
                 setInputs={setInputs}
               />
+              {['/historical', '/optimiser', '/reports'].includes(feature.path) && (
               <NumberControl
                 label="Invented annual rainfall (mm)"
                 field="annual_rainfall_mm"
@@ -204,6 +206,8 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
                 inputs={inputs}
                 setInputs={setInputs}
               />
+              )}
+              {['/community-budget'].includes(feature.path) && (
               <NumberControl
                 label="Illustrative community budget (₹)"
                 field="budget_inr"
@@ -212,13 +216,11 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
                 inputs={inputs}
                 setInputs={setInputs}
               />
+              )}
             </div>
           </details>
-        </>
+        </details>
       )}
-      {!compact && <Notice title="What the real page needs" tone="warning">
-        {feature.liveNeeds}
-      </Notice>}
       {error ? (
         <Notice tone="warning" title="Simulation unavailable">
           <p>{error}</p>
@@ -231,10 +233,11 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
       ) : (
         <motion.div
           className="feature-result"
-          key={feature.path}
+          key={`result-${feature.path}`}
           initial={reduced ? false : { opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
         >
+          {feature.path === '/recommendations' && <InstallationHelp />}
           <FeatureBody key={feature.path} path={feature.path} result={result} inputs={inputs} />
           {feature.path === '/reports' && (
             <Section title="Export the example assessment">
@@ -248,8 +251,12 @@ export default function FeatureSandbox({ featurePath, compact = false }: { featu
               {downloadError && <Notice tone="warning">{downloadError}</Notice>}
             </Section>
           )}
+          <details className="example-purpose">
+            <summary>How this helps in real life</summary>
+            <p>{feature.benefit}</p><p>{feature.liveNeeds}</p>
+          </details>
           <Evidence
-            title="Simulation source, model assumptions and limitations"
+            title="Example assumptions and sources"
             value={{
               data_kind: result.data_kind,
               persisted: result.persisted,
@@ -402,17 +409,16 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
     return (
       <Section title="Practice monsoon readiness">
         <div className="metrics-grid three">
-          <Metric label="Example harvestable inflow" value={number(calculation.net_inflow_l)} unit="L" />
+          <Metric label="Potential collection" value={number(calculation.net_inflow_l)} unit="L" />
           <Metric
-            label="Initial available capacity"
+            label="Space in the tank"
             value={number(calculation.capacity_l - calculation.initial_storage_l)}
             unit="L"
           />
-          <Metric label="Example overflow" value={number(calculation.overflow_l)} unit="L" />
+          <Metric label="Potential overflow" value={number(calculation.overflow_l)} unit="L" />
         </div>
         <p>
-          These checkboxes are a practice exercise. No inspection date, performed task or confirmed fault is
-          saved.
+          Try the checklist. These selections stay in this example only.
         </p>
         <div className="feature-checklist">
           {[
@@ -435,12 +441,11 @@ function FeatureBody({ path, result, inputs }: { path: string; result: DemoResul
                 }}
               />
               {task}
-              <Chip tone="amber">Practice only</Chip>
             </label>
           ))}
         </div>
         <p role="status">
-          {checks.length} of 6 practice checks selected. Real maintenance status is unconfirmed.
+          {checks.length} of 6 practice checks selected.
         </p>
       </Section>
     )
