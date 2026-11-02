@@ -1,5 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from pydantic import Field, model_validator
@@ -48,6 +50,11 @@ class Settings(BaseSettings):
     ai_gateway_model: str = ""
     upload_max_bytes: int = 5_242_880
     error_monitoring_dsn: str = ""
+    runtime_mode: Literal["persistent", "serverless"] = "persistent"
+    photo_storage: Literal["local", "supabase"] = "local"
+    supabase_url: str = ""
+    supabase_service_role_key: str = ""
+    supabase_storage_bucket: str = "varshiq-private-photos"
 
     @model_validator(mode="after")
     def production_requirements(self):
@@ -59,6 +66,18 @@ class Settings(BaseSettings):
                 raise ValueError("Production SERVER_SECRET must have at least 32 characters")
             if any(not origin.startswith("https://") for origin in self.origins):
                 raise ValueError("Production allowed origins must use HTTPS")
+            if not self.origins:
+                raise ValueError("Production requires an explicit HTTPS website origin")
+            if self.runtime_mode == "serverless" and self.photo_storage != "supabase":
+                raise ValueError("Serverless production requires durable private photo storage")
+        if self.photo_storage == "supabase":
+            url = urlsplit(self.supabase_url)
+            if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
+                raise ValueError("Supabase storage requires a valid HTTPS project URL")
+            if url.path not in ("", "/") or not self.supabase_service_role_key:
+                raise ValueError("Supabase storage requires a project URL and server-side service key")
+            if not self.supabase_storage_bucket or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-_" for c in self.supabase_storage_bucket):
+                raise ValueError("Invalid Supabase storage bucket name")
         return self
 
     @property

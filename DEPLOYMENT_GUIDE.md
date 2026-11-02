@@ -70,6 +70,10 @@ Validate registration, ownership permissions, live forecast, tomorrow's date, mo
 
 ## Production hosting
 
+For the noncommercial free hosted pilot, see [Vercel + Supabase deployment](docs/VERCEL_SUPABASE.md).
+That target uses serverless requests, private object storage and a shared database
+rate limiter instead of the single-process container scheduler described below.
+
 Use a TLS reverse proxy/load balancer and set:
 
 - `APP_ENV=production`

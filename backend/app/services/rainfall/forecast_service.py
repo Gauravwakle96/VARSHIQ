@@ -161,14 +161,17 @@ async def forecast(db, latitude, longitude, timezone="Asia/Kolkata", days=7, pro
         == now().astimezone(ZoneInfo(timezone)).date()
     ):
         return {**cached.payload, "id": cached.id, "cache": True, "stale": False}
+    # Anchor the provider horizon to the property's local date. Relative-day
+    # responses can still be cached for the preceding day around local midnight.
+    today = now().astimezone(ZoneInfo(timezone)).date()
     params = {
         "latitude": latitude,
         "longitude": longitude,
         "timezone": timezone,
         "hourly": "precipitation,precipitation_probability,rain,showers",
         "daily": "precipitation_sum,precipitation_probability_max,precipitation_hours",
-        "forecast_days": days + 1,
-        "past_days": 1,
+        "start_date": (today - timedelta(days=1)).isoformat(),
+        "end_date": (today + timedelta(days=days)).isoformat(),
         "timeformat": "unixtime",
     }
     base = "https://api.open-meteo.com/v1/forecast"

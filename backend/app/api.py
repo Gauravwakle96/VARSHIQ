@@ -3,7 +3,6 @@ from datetime import date
 from io import BytesIO
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, UploadFile
-from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -46,6 +45,7 @@ from app.services.buildings.building_footprint_service import lookup
 from app.services.evidence import snapshot_status
 from app.services.geometry import assess_geometry
 from app.services.hydrology import calculate, optimise
+from app.services.photo_storage import read_photo, save_photo
 from app.services.rainfall.forecast_service import forecast
 from app.services.rainfall.historical_service import historical
 from app.services.rainfall.imd_service import official_product
@@ -459,10 +459,10 @@ async def upload_photo(
     except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as exc:
         raise HTTPException(422, "Image could not be safely decoded") from exc
     filename = f"{secrets.token_hex(20)}.jpg"
-    directory = ROOT / "uploads"
-    directory.mkdir(exist_ok=True)
     payload = output.getvalue()
-    (directory / filename).write_bytes(payload)
+    if settings.runtime_mode == "serverless" and len(payload) > 4_000_000:
+        raise HTTPException(413, "Choose a smaller photo; the hosted upload limit is 4 MB")
+    await save_photo(filename, payload, ROOT)
     record = PropertyPhoto(
         property_id=prop.id, user_id=user.id, filename=filename, mime_type="image/jpeg", size=len(payload)
     )
@@ -473,18 +473,14 @@ async def upload_photo(
 
 
 @router.get("/buildings/{property_id}/photos/{photo_id}")
-def download_photo(
+async def download_photo(
     property_id: str, photo_id: str, db: Session = Depends(get_db), user=Depends(require_user)
 ):
     authorised_property(db, property_id, user)
     record = db.get(PropertyPhoto, photo_id)
     if not record or record.property_id != property_id:
         raise HTTPException(404, "Photo unavailable")
-    return FileResponse(
-        ROOT / "uploads" / record.filename,
-        media_type="image/jpeg",
-        headers={"Cache-Control": "private, no-store"},
-    )
+    return await read_photo(record.filename, ROOT)
 
 
 def weather_location(db, user, property_id, latitude, longitude, timezone):

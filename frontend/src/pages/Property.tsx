@@ -621,8 +621,8 @@ function VerificationForm({ property }: { property: Property }) {
     const form = event.currentTarget
     const values = new FormData(form)
     const file = values.get('file') as File
-    if (!file?.size || file.size > 5 * 1024 * 1024) {
-      setPhotoError('Select a JPEG or PNG image no larger than 5 MB.')
+    if (!file?.size || file.size > 4_000_000) {
+      setPhotoError('Select a JPEG or PNG image no larger than 4 MB.')
       setPhotoBusy(false)
       return
     }
@@ -734,7 +734,7 @@ function VerificationForm({ property }: { property: Property }) {
               <label className="upload-zone">
                 <Camera size={28} />
                 <strong>Attach measurement evidence</strong>
-                <span>JPEG or PNG · maximum 5 MB</span>
+                <span>JPEG or PNG · maximum 4 MB</span>
                 <input name="file" type="file" accept="image/jpeg,image/png" required />
               </label>
               <InputError error={photoError} />

@@ -414,6 +414,8 @@ def admin_settings(db: Session = Depends(get_db), user=Depends(require_user)):
             "can_edit": user.role == "admin",
             "providers": provider_status(db),
             "environment": settings.app_env,
+            "runtime_mode": settings.runtime_mode,
+            "refresh_strategy": "On request with cached provider data" if settings.runtime_mode == "serverless" else "Scheduled and on request",
             "database": "PostgreSQL/PostGIS"
             if settings.database_url.startswith("postgresql")
             else "SQLite local development",

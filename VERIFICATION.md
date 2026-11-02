@@ -1,5 +1,8 @@
 # Executed verification
 
+Latest public deployment evidence is in **Free Vercel + Supabase release —
+2026-11-03** below. Earlier entries describe their respective historical state.
+
 Date: 2026-11-02. Project: `C:/Users/gaura/projects/varshiq`. Native Windows; Node 24.14.1, npm 11.11.0, uv 0.12.13 and Python 3.13.15. Local SQLite test results and remote PostgreSQL/PostGIS acceptance are separate.
 
 | Check | Executed result |
@@ -155,3 +158,58 @@ Executed checks:
 Local browser artefacts, private databases and logs stay ignored. No hosted public
 deployment, installation partnership, completed purchase, new field measurement,
 verified home outline or completed field pilot is claimed by this update.
+
+## Free Vercel + Supabase release — 2026-11-03
+
+Public target: **https://varshiq.vercel.app**. Vercel Hobby serves compiled Vite
+assets and the existing FastAPI Python function. Supabase provides PostgreSQL 17,
+PostGIS 3.3 and private photo storage. No paid plan or resource was enabled.
+
+The checked release `dpl_3STxZr2wxGJs3iS56Fu7dUhjJJy1` was promoted after the
+generated deployment URL passed its probes. Canonical-domain checks then ran
+without Vercel login or protection-bypass credentials.
+
+- Backend: **291 passed**, **90% statement coverage**; one existing upstream
+  Starlette/httpx deprecation warning. Ruff application/tests/Alembic checks pass.
+- Frontend: ESLint, TypeScript and production build pass. Root/frontend npm audits
+  and pip-audit against the installed locked Python environment reported no known
+  vulnerabilities. No new dependencies were added.
+- Full isolated Playwright suite: **9 passed**. An initial run had two live-weather
+  failures after midnight in India. An actual provider response showed an incomplete
+  horizon from relative-date parameters. Explicit property-local start/end dates
+  fixed this; new timezone request tests and the complete browser rerun passed.
+- Hosted schema is at **0005**. All **31** application/version tables have RLS;
+  the anonymous Supabase role cannot read properties. The dedicated runtime login
+  uses the TLS transaction pooler. The JPEG-only 4 MB photo bucket is private.
+- Public root HTML, JS/CSS, icons, harvesting illustrations, notices and API health
+  returned **200**. Health reports PostgreSQL. Anonymous property access returned
+  **401**; session CSRF cookies have Secure, HttpOnly and SameSite=Strict attributes.
+- Public demo calculations returned labelled, non-persisted results with a water
+  balance residual below 1e-6 L. Actual OSM retrieval returned **274 outlines** in
+  the CSN city-centre query. Outlines are public geography, not verified roofs.
+- A separate locally executed provider probe using the hosted database retrieved
+  **168 hourly / 7 daily** real Open-Meteo forecasts, with tomorrow dynamically
+  **2026-11-04**, and **365** actual ERA5 regional daily records for 2025. Repeating
+  the history request reused the PostgreSQL cache. This probe is distinct from an
+  authenticated request through the deployed weather API.
+- `node deploy/check-public.mjs` passed on the canonical public URL. It checked
+  actual map tiles/outlines, selection, timeline/tank agreement, a labelled demo PDF,
+  private API denial and no uncaught page errors. Axe WCAG2/2.1 AA scans at
+  **390×844, 768×1024 and 1440×900** reported zero violations in the tested demo
+  states; those layouts had no horizontal overflow. Saved mobile/desktop screenshots
+  were visually inspected. This does not claim complete accessibility conformance.
+- The original public deployment failed by writing SQLite on the read-only runtime.
+  The replacement uses durable database/object storage, shared rate limits and
+  on-request forecast updates. An intermediate build omitted frontend assets;
+  the final Vite output-directory configuration and anchored ignore rule corrected it.
+- Source inclusion and known-secret scans found no private deployment material in
+  release sources. Local private databases/accounts/photos and ignored credentials
+  remain outside Git and Vercel uploads. Public pilot pages retain `noindex`.
+
+The hosted database contained **zero accounts and zero properties** after public
+verification. Existing local accounts and property records were preserved, not
+migrated or replaced. Hosted owner registration/sign-in and private photo round-trips
+have not been exercised with an actual owner account; local automated authorization
+and photo-adapter tests passed. No completed field pilot or backup-restore exercise
+is claimed. Free quotas, cold starts, provider outages and Supabase inactivity
+pausing apply; review [hosting instructions](docs/VERCEL_SUPABASE.md) before a demo.

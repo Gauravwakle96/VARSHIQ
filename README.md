@@ -2,6 +2,9 @@
 
 **Predict the Rain. Harvest Every Drop.**
 
+**Live free pilot:** [varshiq.vercel.app](https://varshiq.vercel.app) ·
+[Explore the demo](https://varshiq.vercel.app/#/demo).
+
 VARSHIQ connects registered building geometry and rooftop measurements to real rainfall providers, deterministic harvesting calculations and a property-specific WaterTwin tank model. The default locality is Chhatrapati Sambhajinagar, Maharashtra; live place search supports arbitrary Indian localities and coordinate-specific weather. Country, state, district, city/village, locality, postcode and reporting timezone remain configurable.
 
 The application starts with **zero properties and zero measurements**. The intended real pilot includes two residential properties, two commercial properties and one apartment/community context; it requires owner-authorised registrations and measurements. Forecast results, regional historical reanalysis, geospatial estimates, owner-entered information and owner-recorded field evidence are identified separately.
@@ -34,6 +37,8 @@ Owners without measurements can explicitly configure **planning assumptions** on
 - Exact budget-constrained selection of quoted storage upgrades using historical incremental water supplied. One upgrade per property; no synthetic budget-training model.
 
 ## Run locally
+
+The free noncommercial hosting configuration is documented in [Vercel + Supabase](docs/VERCEL_SUPABASE.md).
 
 Requirements: Node.js 24+, Python 3.12+, [uv](https://docs.astral.sh/uv/) and npm. Docker is optional for the SQLite development path and required for the supplied PostgreSQL/PostGIS Compose setup.
 

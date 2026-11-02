@@ -19,3 +19,6 @@ artifacts
 playwright-report
 test-results
 *.log
+.vercel
+public/*
+supabase

@@ -69,6 +69,27 @@ def test_provider_interval_labels_and_tomorrow_exact_date():
     assert data["hourly"][0]["precipitation_mm"] == 2  # not multiplied by 75%
 
 
+@pytest.mark.parametrize("timezone,expected_start,expected_end", [
+    ("Asia/Kolkata", "2026-11-02", "2026-11-10"),
+    ("America/Los_Angeles", "2026-11-01", "2026-11-09"),
+])
+def test_request_horizon_uses_property_date_near_midnight(db_session, monkeypatch, timezone, expected_start, expected_end):
+    instant = datetime(2026, 11, 2, 18, 31, tzinfo=UTC)
+    monkeypatch.setattr(service, "now", lambda: instant)
+
+    def handler(request):
+        assert request.url.params["start_date"] == expected_start
+        assert request.url.params["end_date"] == expected_end
+        assert "forecast_days" not in request.url.params and "past_days" not in request.url.params
+        return httpx.Response(200, json=raw_forecast(instant, timezone))
+
+    install_transport(monkeypatch, handler)
+    result = asyncio.run(service.forecast(db_session, 19.076, 72.8777, timezone, 7))
+    assert len(result["hourly"]) == 168 and len(result["daily"]) == 7
+    expected_tomorrow = (instant.astimezone(ZoneInfo(timezone)).date() + timedelta(days=1)).isoformat()
+    assert result["tomorrow"]["date"] == expected_tomorrow
+
+
 @pytest.mark.parametrize(
     "mutate",
     [

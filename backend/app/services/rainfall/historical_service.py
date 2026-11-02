@@ -7,9 +7,12 @@ from zoneinfo import ZoneInfo
 
 import httpx
 from fastapi import HTTPException
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from app.config import ROOT, get_settings
-from app.models import now
+from app.models import LocationCache, now
+from app.security import utc
 from app.services.rainfall.forecast_service import source_status, value
 
 settings = get_settings()
@@ -117,11 +120,17 @@ async def historical(db, latitude, longitude, timezone, start_date, end_date, pr
     key = hashlib.sha256(
         f"{latitude:.5f}:{longitude:.5f}:{timezone}:{start_date}:{end_date}:era5".encode()
     ).hexdigest()
-    directory = ROOT / "data" / "historical"
-    directory.mkdir(parents=True, exist_ok=True)
-    cache_file = directory / f"{key}.json"
-    if cache_file.exists():
-        return {**json.loads(cache_file.read_text(encoding="utf-8")), "cache": True}
+    cache_file = None
+    if settings.runtime_mode == "serverless":
+        cached = db.get(LocationCache, key)
+        if cached and utc(cached.expires_at) > now():
+            return {**cached.payload, "cache": True}
+    else:
+        directory = ROOT / "data" / "historical"
+        directory.mkdir(parents=True, exist_ok=True)
+        cache_file = directory / f"{key}.json"
+        if cache_file.exists():
+            return {**json.loads(cache_file.read_text(encoding="utf-8")), "cache": True}
     params = {
         "latitude": latitude,
         "longitude": longitude,
@@ -163,7 +172,13 @@ async def historical(db, latitude, longitude, timezone, start_date, end_date, pr
             "Weather data by Open-Meteo.com; ERA5 by ECMWF/Copernicus — CC BY 4.0",
         )
         data["cache"] = False
-        cache_file.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
+        if cache_file is not None:
+            cache_file.write_text(json.dumps(data, allow_nan=False), encoding="utf-8")
+        else:
+            insert = sqlite_insert if db.bind.dialect.name == "sqlite" else pg_insert
+            statement = insert(LocationCache).values(key=key, payload=data, expires_at=now() + timedelta(days=7))
+            db.execute(statement.on_conflict_do_update(index_elements=[LocationCache.key],
+                set_={"payload": data, "expires_at": now() + timedelta(days=7)}))
         source_status(db, "Open-Meteo Archive", "connected", "Actual ERA5 historical reanalysis retrieved")
         db.commit()
         return data

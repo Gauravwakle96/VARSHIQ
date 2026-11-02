@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager, suppress
@@ -9,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import select, text
+from starlette.concurrency import run_in_threadpool
 
 from app.config import get_settings
 from app.database import Base, SessionLocal, engine
@@ -44,7 +46,7 @@ async def lifespan(app):
         Base.metadata.create_all(engine)
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
-    task = asyncio.create_task(refresh_forecasts()) if settings.app_env != "test" else None
+    task = asyncio.create_task(refresh_forecasts()) if settings.app_env != "test" and settings.runtime_mode == "persistent" else None
     yield
     if task:
         task.cancel()
@@ -72,6 +74,10 @@ requests_by_key = defaultdict(deque)
 async def security_and_limits(request: Request, call_next):
     instant = time.monotonic()
     ip = request.client.host if request.client else "unknown"
+    if settings.runtime_mode == "serverless" and os.environ.get("VERCEL") == "1":
+        # Vercel overwrites this header at its ingress. Never trust it for the
+        # local/native server, where callers can supply arbitrary headers.
+        ip = request.headers.get("x-forwarded-for", ip).split(",")[0].strip()
     path = request.url.path
     category = (
         "demo_map"
@@ -88,17 +94,26 @@ async def security_and_limits(request: Request, call_next):
         else "api"
     )
     limit = 6 if category == "demo_map" else 60 if category == "demo" else 15 if category in {"auth", "expensive"} else 180
-    key = (ip, category)
-    bucket = requests_by_key[key]
-    while bucket and instant - bucket[0] > 60:
-        bucket.popleft()
-    if len(bucket) >= limit:
+    if settings.runtime_mode == "serverless" and path != "/api/v1/health":
+        from app.services.shared_limits import consume
+        try:
+            allowed = await run_in_threadpool(consume, ip, category, limit)
+        except Exception:
+            return JSONResponse({"error": {"code": "service_unavailable", "message": "The database is temporarily unavailable; retry shortly."}}, status_code=503)
+    else:
+        key = (ip, category)
+        bucket = requests_by_key[key]
+        while bucket and instant - bucket[0] > 60:
+            bucket.popleft()
+        allowed = len(bucket) < limit
+        if allowed:
+            bucket.append(instant)
+    if not allowed:
         return JSONResponse(
             {"error": {"code": "rate_limit", "message": "Too many requests; retry in one minute"}},
             status_code=429,
             headers={"Retry-After": "60"},
         )
-    bucket.append(instant)
     if len(requests_by_key) > 10000:
         stale_keys = [
             item for item, values in requests_by_key.items() if not values or instant - values[-1] > 60

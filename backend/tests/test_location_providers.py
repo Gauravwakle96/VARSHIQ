@@ -95,8 +95,10 @@ def archive_fixture(amounts=None, dates=None):
                       "precipitation_sum": amounts or [5, 0, 20]}}
 
 
-def test_historical_coordinate_request_and_persistent_regional_cache(db_session, monkeypatch, tmp_path):
+@pytest.mark.parametrize("runtime", ["persistent", "serverless"])
+def test_historical_coordinate_request_and_persistent_regional_cache(db_session, monkeypatch, tmp_path, runtime):
     monkeypatch.setattr(archive, "ROOT", tmp_path)
+    monkeypatch.setattr(archive.settings, "runtime_mode", runtime)
     calls = []
 
     def handler(request):
@@ -111,6 +113,19 @@ def test_historical_coordinate_request_and_persistent_regional_cache(db_session,
     assert first["data_kind"] == "historical_reanalysis" and second["cache"]
     assert len(calls) == 1 and first["annual"][0]["total_mm"] == 25
     assert "regional" in first["limitations"][0].lower()
+    if runtime == "serverless":
+        assert not (tmp_path / "data").exists()
+        from datetime import timedelta
+
+        from sqlalchemy import select
+
+        from app.models import LocationCache, now
+        row = db_session.scalar(select(LocationCache))
+        row.expires_at = now() - timedelta(seconds=1)
+        db_session.commit()
+        refreshed = asyncio.run(archive.historical(*args))
+        assert not refreshed["cache"] and len(calls) == 2
+        assert len(list(db_session.scalars(select(LocationCache)))) == 1
 
 
 @pytest.mark.parametrize("raw", [archive_fixture([5, None, 4]), archive_fixture([5]),

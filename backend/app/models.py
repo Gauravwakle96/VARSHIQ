@@ -312,4 +312,11 @@ class LocationCache(Base):
     payload: Mapped[dict] = mapped_column(JSON)
 
 
+class RequestRateLimit(Base):
+    __tablename__ = "request_rate_limits"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 Index("ix_forecast_location_time", WeatherForecast.cache_key, WeatherForecast.retrieved_at)
