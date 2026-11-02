@@ -9,9 +9,13 @@ All private property, forecast, modelling, observation, report and source-status
 | Method/path | Input | Result |
 | --- | --- | --- |
 | POST `/demo/simulate` | Bounded profile/weather enums, rainfall, catchment, coefficients, tank, demand and illustrative budget | `data_kind: simulated_demonstration`, `persisted: false`; 48-hour deterministic model, storage alternatives and fictional community choices |
+| POST `/demo/workspace` | Same bounded scenario inputs plus `annual_rainfall_mm` (0–5000; default 1500, explicitly invented) | Stateless fictional supply/use examples, complete synthetic annual daily sizing, sample performance pairs, fictional property aggregates and unavailable groundwater values |
+| POST `/demo/report` | Same inputs as `/demo/workspace` | Downloadable `application/pdf` with SIMULATED title/filename and `X-Varshiq-Data-Kind: simulated_demonstration`; no report record persisted |
 | GET `/demo/footprints` | Finite WGS84 `latitude` (−85…85), `longitude` (−180…180) | Bounded actual OSM polygons, geodesic area, centroid, attribution and retrieval time; `data_kind: real_public_geography`, `water_inputs: simulated_unverified`, `persisted: false` |
 
 These endpoints omit authentication cookies, do not read or write private records, and create no session. Simulation is stateless and makes no external requests; public geography uses the existing bounded provider and process cache. Limits are 60 simulation requests and 6 footprint lookups/minute/IP in separate buckets. `422` identifies invalid inputs, `429` the rate limit and `502/503` unavailable geography. Missing outlines remain empty; no fictional building is inserted. See [demonstration contract](docs/DEMO_MODE.md).
+
+Workspace/report previews share the 60-request demonstration bucket and reject private property IDs, role fields and measurement payloads. The annual example has an invented seasonal pattern for 2001, not a retrieved observation or Maharashtra climate normal. Its daily balance uses an empty initial tank and wet-day first-flush approximation; no quotation is inferred. Sample quality values and practice inspection state remain browser-only. Preview access does not change authorisation on any live endpoint.
 
 ## Authentication
 

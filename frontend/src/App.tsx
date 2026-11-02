@@ -28,6 +28,7 @@ import type { LocationResult, Property, Session } from './types'
 import { WorkspaceContext } from './context'
 import { Chip, date, ErrorState, Loading, Notice } from './components/ui'
 import { AuthPage, LandingPage } from './pages/Auth'
+import './features/demo/featureSandbox.css'
 
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const PropertyPages = lazy(() => import('./pages/Property'))
@@ -38,6 +39,8 @@ const InsightPages = lazy(() => import('./pages/Insights'))
 const LocationPage = lazy(() => import('./pages/Location'))
 const OperationsPages = lazy(() => import('./pages/Operations'))
 const DemoPage = lazy(() => import('./pages/Demo'))
+const DemoWorkspace = lazy(() => import('./pages/DemoWorkspace'))
+const FeatureSandbox = lazy(() => import('./features/demo/FeatureSandbox'))
 
 const groups = [
   {
@@ -96,6 +99,12 @@ const groups = [
 
 export default function App() {
   const location = useLocation()
+  if (location.pathname === '/demo/features')
+    return (
+      <Suspense fallback={<Loading text="Opening the simulated feature workspace…" />}>
+        <DemoWorkspace />
+      </Suspense>
+    )
   if (location.pathname === '/demo')
     return (
       <Suspense fallback={<Loading text="Opening the illustrative WaterTwin demo…" />}>
@@ -117,6 +126,7 @@ function WorkspaceApp() {
   }
   const [menuOpen, setMenuOpen] = useState(false)
   const [toast, setToast] = useState('')
+  const [simulationMode, setSimulationMode] = useState(false)
   const location = useLocation()
   const properties = buildings.data ?? []
   const property = properties.find((item) => item.id === selectedId) ?? properties[0] ?? null
@@ -365,13 +375,39 @@ function WorkspaceApp() {
               </div>
               {buildings.error && <ErrorState error={buildings.error} retry={buildings.reload} />}
               {property?.measurement_status === 'planning_assumptions' && (
-                <Notice tone="warning" title="Planning assumptions active">
-                  Roof size, collection parameters, tank levels and demand for {property.name} are
-                  illustrative assumptions. Weather is a provider forecast. Verify the physical inputs
-                  before making installation decisions.
+                <Notice
+                  tone="warning"
+                  title={simulationMode ? 'Feature simulation active' : 'Planning assumptions active'}
+                >
+                  {simulationMode ? (
+                    <>
+                      The feature below uses fictional demonstration inputs. Your property’s live forecasts
+                      and planning configuration are separate. No real records are saved by this preview.
+                    </>
+                  ) : (
+                    <>
+                      Roof size, collection parameters, tank levels and demand for {property.name} are
+                      illustrative assumptions. Weather is a provider forecast. Verify the physical inputs
+                      before making installation decisions.
+                    </>
+                  )}
+                  <div className="feature-preview-switch">
+                    <button className="button secondary" onClick={() => setSimulationMode(value => !value)}>
+                      {simulationMode ? 'Return to live workspace' : 'Simulate this feature'}
+                    </button>
+                    <Link
+                      to={`/demo/features?feature=${encodeURIComponent(location.pathname)}`}
+                      className="button ghost"
+                    >
+                      Open full feature demo
+                    </Link>
+                  </div>
                 </Notice>
               )}
               <Suspense fallback={<Loading text="Opening water intelligence…" />}>
+                {simulationMode && property?.measurement_status === 'planning_assumptions' ? (
+                  <FeatureSandbox featurePath={location.pathname} />
+                ) : (
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/owner" element={<Dashboard />} />
@@ -403,6 +439,7 @@ function WorkspaceApp() {
                   <Route path="/settings" element={<InsightPages mode="settings" />} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
+                )}
               </Suspense>
               <footer className="footer">
                 <span>

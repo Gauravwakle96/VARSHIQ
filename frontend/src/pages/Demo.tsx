@@ -130,6 +130,7 @@ export default function DemoPage() {
               </button>
             </div>
           </div>
+          <div className="inline-actions"><Link to="/demo/features" className="button secondary">Explore every feature <ArrowRight size={15} /></Link></div>
           {guided && (
             <section className="demo-tour" aria-label="Guided introduction">
               <nav aria-label="Guided tour steps">

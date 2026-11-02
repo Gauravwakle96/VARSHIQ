@@ -51,6 +51,60 @@ export interface DemoResult {
     }[]
   }
   assumptions: string[]
+  workspace?: {
+    data_kind: 'simulated_demonstration'
+    persisted: false
+    supply: { source: string; volume_l: number }[]
+    consumption: { use: string; volume_l: number }[]
+    historical: {
+      source: string
+      year: number
+      annual_rainfall_mm: number
+      monthly: { month: number; rainfall_mm: number }[]
+      resolution: string
+    }
+    annual_sizing: {
+      comparisons: {
+        capacity_l: number
+        cost_inr: number | null
+        simulation: {
+          water_supplied_l: number
+          overflow_l: number
+          unmet_demand_l: number
+        }
+      }[]
+      recommended_range_l: number[]
+      reasons: string[]
+      limitations: string[]
+    }
+    performance: {
+      pairs: { sample: number; predicted_l: number; simulated_reading_l: number }[]
+      mae_l: number | null
+      calibration_eligible: false
+      reason: string
+    }
+    properties: {
+      id: string
+      name: string
+      area_m2: number
+      daily_demand_l: number
+      current_capacity_l: number
+      net_inflow_l: number
+      overflow_l: number
+      measurement_status: 'simulated_unverified'
+      registered: false
+    }[]
+    community: {
+      fictional_count: number
+      verified_area_m2: number
+      assumed_area_m2: number
+      capacity_l: number
+      net_inflow_l: number
+      overflow_l: number
+    }
+    groundwater: { depth_m: null; infiltration_mm_h: null; suitability: string }
+    limitations: string[]
+  }
 }
 export interface FlowFrame {
   hour: number

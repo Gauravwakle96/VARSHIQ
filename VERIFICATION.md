@@ -78,3 +78,18 @@ Executed checks for this change:
 - The planning notice was visually inspected with ECC Chrome DevTools at a 390×844 mobile viewport and a narrow desktop window; the settled mobile document width matched its viewport. Private account/location values and browser evidence remain outside Git.
 
 This is planning functionality with real provider data, not a completed field trial or evidence of an installed harvesting system. Public hosting and field verification remain outstanding.
+
+## All-feature simulation workspace — 2026-11-02
+
+The anonymous feature workspace and private planning-preview switch cover all 27 existing navigation destinations. Each preview exposes purpose, beneficiary, assumptions and the field inputs its live workflow needs. No existing account, permission or private property configuration is changed by preview actions.
+
+Executed checks:
+
+- Backend application/tests/migrations Ruff: passed. Full backend suite: **264 passed**, with the existing Starlette/httpx deprecation warning. Eighteen new cases validate stateless previews/PDF exports, no external provider calls, supply/demand and annual storage balances, missing groundwater, calibration ineligibility, input bounds, private-payload rejection and shared rate limiting.
+- Frontend ESLint, TypeScript/production build: passed. Frontend/root npm audits reported zero vulnerabilities; the locked Python environment audit reported no known vulnerabilities.
+- Targeted feature browser suite: **2 passed**. It traverses all 27 destinations, exercises checklist/quality/assistant/budget controls and PDF download, tests mobile navigation, keyboard skip/reduced motion, failure/retry, and checks that private planning actions preserve original values, empty measurement/quality records and the owner role.
+- New quality-preview layouts were visually inspected at 390×844 and 1440×900; axe WCAG2/2.1 AA checks passed at 390×844, 768×1024 and 1440×900. The short result entrance animation is allowed to settle before contrast scans. Explicit mobile-selector labelling fixed an initial test locator failure. Tested views had no horizontal document overflow; this does not establish conformance of every untested interaction.
+- Complete seven-test browser regression run: **5 passed, 2 failed**. The three existing demo cases and two new feature cases passed. Two existing live-weather workflows failed at forecast attribution assertions because Open-Meteo was unavailable. A separate forecast probe returned **HTTP 503** with reason **“The service is overloaded”**. These live-weather checks are not reported as passed for this run; earlier successful provider evidence remains date-specific.
+- Read-only checks of the existing private planning property confirmed its configured area/storage/sharing basis was preserved. Rooftop, rainfall/storage observations, water-quality, maintenance, supply and consumption evidence counts remained zero. Private values and browser artefacts remain outside source control.
+
+The feature workspace stays usable when the live weather provider is unavailable because its scenario calculations have no external weather dependency. Actual forecast pages retain their existing unavailable/stale-data handling. Public deployment, the actual field pilot and professional roof/recharge/quality verification remain outstanding.

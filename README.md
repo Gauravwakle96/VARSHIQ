@@ -8,6 +8,8 @@ The application starts with **zero properties and zero measurements**. The inten
 
 **Explore Demo** beside Sign in opens `/#/demo` without an account. Visitors can select actual OpenStreetMap building outlines and explore a clearly labelled animated water scenario, storage choices and fictional community budgets. The guided tour explains who benefits, why the idea matters and its limitations. Demo rainfall, catchments, tanks, demand and costs are illustrative; no demo results or mapped outlines become private property or measurement records. See [docs/DEMO_MODE.md](docs/DEMO_MODE.md).
 
+**Explore every feature** opens `/#/demo/features`, a fictional workspace covering all 27 navigation items. It includes supply/consumption examples, inspection practice, sample quality values, seasonal tank comparisons, community choices, a deterministic scenario assistant and a downloadable SIMULATED PDF. Each page explains its beneficiary and the real inputs it requires. Owners with planning assumptions can also click **Simulate this feature** inside their private workspace and return to live records at any time. Preview actions cannot verify roofs, create actual readings or grant municipal access.
+
 ## Core workflows
 
 - Private account registration and cookie-based authentication, CSRF protection and organisation-scoped records.

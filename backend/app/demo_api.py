@@ -2,13 +2,14 @@
 
 from typing import Literal
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 from pydantic import Field, model_validator
 
 from app.schemas import Schema
 from app.serializers import ok
 from app.services.buildings.building_footprint_service import lookup
 from app.services.demo import demonstration
+from app.services.demo_workspace import demonstration_report, workspace_demonstration
 from app.services.geometry import assess_geometry
 
 router = APIRouter(prefix="/api/v1/demo", tags=["Illustrative demo"])
@@ -39,6 +40,27 @@ def simulate_demo(body: DemoInputs):
     # No authentication/CSRF required: no reads/writes of private state,
     # cookie changes, external calls or user-supplied arbitrary time series.
     return ok(demonstration(body))
+
+
+class WorkspaceInputs(DemoInputs):
+    annual_rainfall_mm: float = Field(default=1500, ge=0, le=5000)
+
+
+@router.post("/workspace")
+def simulate_workspace(body: WorkspaceInputs):
+    return ok(workspace_demonstration(body))
+
+
+@router.post("/report")
+def simulated_report(body: WorkspaceInputs):
+    return Response(
+        demonstration_report(body),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'attachment; filename="VARSHIQ-SIMULATED-assessment.pdf"',
+            "X-Varshiq-Data-Kind": "simulated_demonstration",
+        },
+    )
 
 
 @router.get("/footprints")

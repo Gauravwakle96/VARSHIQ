@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { DemoInputs, DemoResult } from './data'
 
-export function useDemo(inputs: DemoInputs, revision: number) {
+export function useDemo(inputs: DemoInputs, revision: number, workspace = false) {
   const key = JSON.stringify(inputs)
   const [saved, setSaved] = useState<{ key: string; value: DemoResult } | null>(null)
   const [error, setError] = useState<{ key: string; message: string } | null>(null)
@@ -10,7 +10,7 @@ export function useDemo(inputs: DemoInputs, revision: number) {
     const timer = window.setTimeout(async () => {
       setError(null)
       try {
-        const response = await fetch('/api/v1/demo/simulate', {
+        const response = await fetch(workspace ? '/api/v1/demo/workspace' : '/api/v1/demo/simulate', {
           method: 'POST',
           credentials: 'omit',
           signal: controller.signal,
@@ -30,6 +30,14 @@ export function useDemo(inputs: DemoInputs, revision: number) {
           !Array.isArray(body.data.community?.buildings)
         )
           throw new Error('The simulation response is incomplete. Retry the service.')
+        if (
+          workspace &&
+          (body.data.workspace?.data_kind !== 'simulated_demonstration' ||
+            body.data.workspace.persisted !== false ||
+            !Array.isArray(body.data.workspace.annual_sizing?.comparisons) ||
+            !Array.isArray(body.data.workspace.performance?.pairs))
+        )
+          throw new Error('The feature preview response is incomplete. Retry the service.')
         if (!controller.signal.aborted) setSaved({ key, value: body.data })
       } catch (error) {
         if (!controller.signal.aborted) setError({ key, message: (error as Error).message })
@@ -39,7 +47,7 @@ export function useDemo(inputs: DemoInputs, revision: number) {
       window.clearTimeout(timer)
       controller.abort()
     }
-  }, [key, revision])
+  }, [key, revision, workspace])
   return {
     result: saved?.key === key ? saved.value : null,
     error: error?.key === key ? error.message : null,

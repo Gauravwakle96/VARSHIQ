@@ -21,3 +21,21 @@ Actual outlines are selectable by clicking their polygons or using the labelled 
 Source links, attribution, retrieval time, estimated footprint area and coverage limitations are visible. No mapped building is registered by the demo and no physical harvesting installation is asserted. The signed-in workspace remains the route for actual owner records and forecast retrieval.
 
 Primary UI reference: [Leaflet 1.9 API](https://leafletjs.com/reference.html), including `DivIcon`, marker anchors, polygon events and padded `fitBounds`.
+
+## Full feature workspace
+
+`/#/demo/features?feature=%2Fquality` opens an anonymous preview of a selected navigation item. All 27 items are covered, including residential/commercial/community contexts and role-protected municipal/settings workflows. Desktop uses grouped navigation; mobile/tablet uses an accessible grouped selector. The original animated tour links to this workspace. A private property marked `planning_assumptions` offers **Simulate this feature**; **Return to live workspace** restores the existing page without changing records.
+
+Each preview explains its purpose, beneficiary, source assumptions and missing real-world inputs. Relevant controls update bounded fictional profiles. Map/location pages use actual public OSM geography. WaterTwin reuses the existing animated deterministic timeline, including manual stepping and reduced motion. Other previews include:
+
+- Model-derived tank supply and assumed municipal fallback; a fictional non-potable demand allocation.
+- Browser-only inspection practice and sample pH/TDS/turbidity values. These are not performed inspections or actual laboratory records; no drinking safety is certified.
+- An invented complete 2001 seasonal rainfall series. The production daily-balance engine compares candidate tanks on that synthetic year without claiming official climate data, actual costs or measured savings.
+- Fictional prediction/reading pairs and their mean absolute error, with actual calibration eligibility explicitly false.
+- Fictional property/community/budget comparisons. No demo building is registered and verified area remains zero.
+- A deterministic question selector explaining precomputed model results without an LLM.
+- A downloadable PDF assessment with a SIMULATED title and filename, full input/loss/balance assumptions and missing field evidence. No real report record is created.
+
+`POST /demo/workspace` and `POST /demo/report` have no database, account, external-provider or credential dependencies. They share the existing 60-request/minute demo limiter. The year, rainfall distribution, wet dates, demand allocation and performance differences are illustrative, not a measured/training dataset. Groundwater depth and soil infiltration remain unavailable even in the preview. Actual municipal and system-setting authorisation remains enforced on live endpoints.
+
+Tests check all menu destinations, responsive navigation, stateful practice controls, report download, reduced motion, failure/retry, source separation, evidence immutability and role boundaries. Accessibility checks wait for the short entrance animation to settle before evaluating contrast.
