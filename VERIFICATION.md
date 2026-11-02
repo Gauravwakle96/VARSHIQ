@@ -12,7 +12,7 @@ Date: 2026-11-02. Project: `C:/Users/gaura/projects/varshiq`. Native Windows; No
 | Frontend `npm audit --audit-level=moderate` | 0 vulnerabilities reported |
 | Runtime frontend licence collection | 56 packages inspected; no missing root licence files |
 | Compose configuration with ephemeral check-only values | PASS; no real credential values were printed |
-| Deployment smoke/PostGIS scripts | Python compilation PASS; actual Docker execution requires a working engine or CI |
+| Deployment smoke/PostGIS scripts | Python compilation PASS; real PostgreSQL/PostGIS and Compose CI checks subsequently PASS |
 | Browser `npm run test:e2e` | 2 expanded tests passed against an isolated SQLite database and real Open-Meteo/Photon requests, including PDF bytes and a historical community-budget submission |
 
 Backend tests cover provider validation/failure boundaries, geometry and coordinate transformations, timezone/tomorrow handling, dry gaps and event state, per-event diversion, losses, physical tank balance, storage optimisation, observation/calibration eligibility, permissions, provenance, migration upgrade/backfill/downgrade, UTC persistence and concurrent ledger submissions. Community selection is compared with exhaustive enumeration rather than implementation-mirroring assertions.
@@ -31,9 +31,9 @@ Executed checks include account creation, API and UI property registration, catc
 
 - Native local app/API and provider access: VERIFIED by tests/probes above.
 - Docker engine on this Windows host: unavailable; WSL is not installed. No WSL or permission configuration was changed.
-- PostgreSQL/PostGIS deployment: NOT PERFORMED locally. CI defines actual migration round trips and native geometry/SRID/area checks.
-- Compose images/health/API: NOT PERFORMED locally. CI defines image builds and an isolated smoke test of frontend, PostgreSQL API, geometry, CSRF and owner isolation.
-- GitHub Actions: pending first push and inspection; workflow existence is not a passed run.
+- PostgreSQL/PostGIS CI target: VERIFIED on Ubuntu by fresh migration, native geometry/SRID/geodesic-area check, downgrade to base and upgrade to head. This remains separate from a public hosted deployment.
+- Compose CI target: VERIFIED. Backend/frontend images built, PostgreSQL/API/frontend services reached health, and the isolated smoke test passed for geometry registration, CSRF, cross-owner isolation and runoff. Local Windows Docker execution remains unavailable.
+- GitHub Actions: VERIFIED at implementation commit `15956ed7710d6ec767633482c4b5bf0c24d67f44`. All four jobs passed: frontend, backend, postgis-migrations and containers. [Executed run](https://github.com/Gauravwakle96/VARSHIQ/actions/runs/41434116333). The first container check exposed an invalid fixture geometry-source enum; the fixture was corrected and the actual rerun passed.
 - Public HTTPS deployment/backup restore: NOT PERFORMED; requires the selected hosting environment and target verification.
 - Actual residential/commercial/community field pilot: NOT PERFORMED; requires owner authorisation and measurements.
 - Restricted IMD/GOBS/groundwater datasets and optional paid AI/commercial provider plans: no operational access is claimed without corresponding inputs.
@@ -42,3 +42,5 @@ Executed checks include account creation, API and UI property registration, catc
 The software does not invent properties, rainfall observations, collected water, aquifers or trained models to fill these gaps. Statistical maintenance/calibration rules are labelled as screening/parameter estimation. Source notices and independently applicable dataset terms remain part of deployment obligations.
 
 The local ECC UI evidence checker passed for `artifacts/browser/ui-evidence.json` after screenshots were inspected. A local staged-file review checked credential patterns and excluded databases, uploads, dependencies and build/test artefacts. These checks do not guarantee the absence of every possible vulnerability.
+
+Implementation and verification documentation were pushed to the authorised repository. Public hosting, actual owner records and field engineering acceptance remain outstanding; neither local checks nor the isolated CI container are presented as that field deployment.

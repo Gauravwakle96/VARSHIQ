@@ -26,8 +26,8 @@ Updated 2026-11-02. The user authorised implementation and a push to `Gauravwakl
 
 ## Release checks
 
-- [ ] Review final staged files and commit/push the authorised implementation.
-- [ ] Inspect GitHub Actions results after push, including actual PostGIS migration and Compose image/health checks.
+- [x] Review final staged files and commit/push the authorised implementation. No credentials, measurements, databases, uploads or build/test artefacts were published.
+- [x] Inspect GitHub Actions results after push: frontend, backend, PostGIS migration and Compose build/health/API jobs passed on implementation commit 15956ed. See VERIFICATION.md for the run link.
 - [ ] Validate a chosen public HTTPS deployment, durable storage, backup restoration and production access controls in that environment.
 
 ## Field acceptance still required
