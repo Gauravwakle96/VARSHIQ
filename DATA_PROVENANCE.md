@@ -73,3 +73,9 @@ The assistant retrieves authorised backend information before answering. All phy
 See [location provenance](docs/LOCATION_DATA.md) and [water operations](docs/WATER_OPERATIONS.md). All persisted datetimes are normalised to UTC, including SQLite fallback storage, and displayed in the selected property timezone. The imported official district directory contains factual names/links, not properties or measured rooftop data. Geocoder coordinates/addresses remain estimates requiring confirmation.
 
 Water-source, consumption, maintenance and quality-test records keep user/method/date/reliability. Exact community investment selection uses actual quotations and simulated historical additional supply, not trained synthetic benefit models. Superseded/stale WaterTwin predictions are flagged and retained as history.
+
+## Isolated public demonstration
+
+The user-authorised demo has a persistent simulation disclosure. OSM basemap tiles and downloaded building outlines are actual public geography with source links, retrieval timestamps and estimated geodesic footprint area. Selecting an outline does not infer or verify its effective rooftop area, equipment, water use or ownership. The tank marker is schematic, not an observed installation location.
+
+Rainfall, catchment, collection parameters, tank readings, demand, fictional community buildings and indicative costs in this route are explicit scenario inputs. The existing deterministic Python engines generate their water balances and budget choices. The time anchor is illustrative, not tomorrow's forecast. Demo results carry `simulated_demonstration` and `persisted: false`; no properties, observations, reports, calibrations or municipal statistics are persisted from this route. Public map lookups carry `real_public_geography` with `simulated_unverified` water inputs.

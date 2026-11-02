@@ -6,6 +6,8 @@ VARSHIQ connects registered building geometry and rooftop measurements to real r
 
 The application starts with **zero properties and zero measurements**. The intended real pilot includes two residential properties, two commercial properties and one apartment/community context; it requires owner-authorised registrations and measurements. Forecast results, regional historical reanalysis, geospatial estimates, owner-entered information and owner-recorded field evidence are identified separately.
 
+**Explore Demo** beside Sign in opens `/#/demo` without an account. Visitors can select actual OpenStreetMap building outlines and explore a clearly labelled animated water scenario, storage choices and fictional community budgets. The guided tour explains who benefits, why the idea matters and its limitations. Demo rainfall, catchments, tanks, demand and costs are illustrative; no demo results or mapped outlines become private property or measurement records. See [docs/DEMO_MODE.md](docs/DEMO_MODE.md).
+
 ## Core workflows
 
 - Private account registration and cookie-based authentication, CSRF protection and organisation-scoped records.

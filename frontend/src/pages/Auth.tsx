@@ -1,6 +1,16 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Building2, CloudRain, Droplets, Eye, EyeOff, ShieldCheck, Waves } from 'lucide-react'
+import {
+  ArrowRight,
+  Building2,
+  CloudRain,
+  Droplets,
+  Eye,
+  EyeOff,
+  FlaskConical,
+  ShieldCheck,
+  Waves,
+} from 'lucide-react'
 import { motion, MotionConfig, useReducedMotion } from 'framer-motion'
 import { post, setCsrf, useApi } from '../api'
 import type { Community, Session, User } from '../types'
@@ -103,6 +113,12 @@ export function AuthPage({ onAuthenticated }: { onAuthenticated: () => Promise<v
               Create account
             </button>
           </div>
+          <Link to="/demo" className="button auth-demo-link">
+            <FlaskConical size={17} />
+            Explore Demo
+            <ArrowRight size={16} />
+          </Link>
+          <span className="auth-demo-caption">Real map · animated simulation · no account needed</span>
           <form onSubmit={submit}>
             {register && (
               <Field label="Your name">
@@ -185,9 +201,15 @@ export function LandingPage({ user }: { user?: User | null }) {
               VARSHIQ<small>BUILDING & COMMUNITY WATER INTELLIGENCE</small>
             </span>
           </Link>
-          <Link className="button secondary" to="/">
-            Open workspace <ArrowRight size={16} />
-          </Link>
+          <div className="landing-header-actions">
+            <Link className="button secondary" to="/demo">
+              <FlaskConical size={16} />
+              Explore Demo
+            </Link>
+            <Link className="button secondary" to="/">
+              Open workspace <ArrowRight size={16} />
+            </Link>
+          </div>
         </header>
         <main>
           <motion.div className="landing-hero" {...entrance()}>

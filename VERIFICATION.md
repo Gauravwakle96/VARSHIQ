@@ -44,3 +44,20 @@ The software does not invent properties, rainfall observations, collected water,
 The local ECC UI evidence checker passed for `artifacts/browser/ui-evidence.json` after screenshots were inspected. A local staged-file review checked credential patterns and excluded databases, uploads, dependencies and build/test artefacts. These checks do not guarantee the absence of every possible vulnerability.
 
 Implementation and verification documentation were pushed to the authorised repository. Public hosting, actual owner records and field engineering acceptance remain outstanding; neither local checks nor the isolated CI container are presented as that field deployment.
+
+## Public animated demo addition — 2026-11-02
+
+The `/#/demo` route has been implemented and tested locally. It selects actual OSM outlines and displays a schematic tank using explicitly simulated water inputs. The guided tour explains purpose, beneficiaries, storage/community choices and limitations. Public demo endpoints do not create private records, observations or sessions.
+
+Executed checks for this addition:
+
+- Full backend suite: **238 passed**, with one existing Starlette/httpx TestClient deprecation warning.
+- Backend application/tests Ruff check: passed. An expanded `ruff check .` additionally found an existing import-order issue in the unchanged `probe_providers.py` helper; this is outside the application/test lint target.
+- Frontend ESLint, TypeScript and production build: passed.
+- Frontend and root `npm audit --audit-level=moderate`: zero reported vulnerabilities. `uvx pip-audit --path .venv/Lib/site-packages --progress-spinner off` audited the installed locked backend environment and reported no known vulnerabilities.
+- Three demo Playwright tests: passed. They cover real OSM tiles/outlines, clicking a selected polygon, keyboard selection, exact tank/timeline agreement, scenarios, purpose/limitations, stable tank DOM, cancelled/superseded responses, location changes, private-endpoint separation, provider errors, retries, reduced motion and mobile/tablet layout.
+- Two existing signed-in Playwright workflows: passed again, including real forecast retrieval, WaterTwin, PDF reporting, roof evidence, persistent water/maintenance/quality records and responsive accessibility.
+- Live CSN lookup returned **145 actual building outlines**. No production property was registered. Internet access and current OSM coverage remain necessary for map retrieval.
+- Demo screenshots at 390×844, 768×1024 and 1440×900 were visually inspected, including selected real geography. Automated axe WCAG2/2.1 AA scans at those widths reported no violations in the tested demo states. These checks do not establish complete accessibility conformance or visual regression agreement with an unprovided baseline.
+
+Evidence is local and ignored under `artifacts/demo/`, `artifacts/browser/` and Playwright result folders. Synthetic provider/error fixtures are restricted to automated tests. Public hosting and the actual authorised field pilot remain outstanding. Previous CI evidence above applies to its named commit; it is not proof that this addition has already passed remote CI.

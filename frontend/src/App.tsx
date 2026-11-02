@@ -37,6 +37,7 @@ const ModelPages = lazy(() => import('./pages/Models'))
 const InsightPages = lazy(() => import('./pages/Insights'))
 const LocationPage = lazy(() => import('./pages/Location'))
 const OperationsPages = lazy(() => import('./pages/Operations'))
+const DemoPage = lazy(() => import('./pages/Demo'))
 
 const groups = [
   {
@@ -94,6 +95,17 @@ const groups = [
 ]
 
 export default function App() {
+  const location = useLocation()
+  if (location.pathname === '/demo')
+    return (
+      <Suspense fallback={<Loading text="Opening the illustrative WaterTwin demo…" />}>
+        <DemoPage />
+      </Suspense>
+    )
+  return <WorkspaceApp />
+}
+
+function WorkspaceApp() {
   const session = useApi<Session>('/auth/session')
   const user = session.data?.user ?? null
   const buildings = useApi<Property[]>(user ? '/buildings' : null)

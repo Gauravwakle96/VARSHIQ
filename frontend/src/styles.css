@@ -4188,3 +4188,35 @@ th {
     grid-column: auto;
   }
 }
+
+/* Public demo entry points stay styled before the lazy demo bundle loads. */
+.auth-demo-link {
+  width: 100%;
+  margin: 0 0 15px;
+  gap: 10px;
+  background: #eaf4ef;
+  border: 1px solid #c6dfd2;
+  color: #0c6956;
+}
+.auth-demo-caption {
+  display: block;
+  margin: -5px 0 20px;
+  font-size: 10px;
+  color: #4d6c5e;
+  text-align: center;
+}
+.landing-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 767px) {
+  .landing header:has(.landing-header-actions) {
+    flex-wrap: wrap;
+    gap: 18px;
+  }
+  .landing-header-actions {
+    flex-wrap: wrap;
+  }
+}

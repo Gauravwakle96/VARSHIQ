@@ -106,22 +106,24 @@ async def lookup(db, latitude, longitude, provider="osm"):
         if len(_cache) >= 64:
             _cache.pop(next(iter(_cache)))
         _cache[key] = result
-        source_status(
-            db,
-            "OpenStreetMap" if provider == "osm" else "Microsoft Footprints",
-            "connected",
-            f"Actual geographic lookup returned {len(features)} footprints",
-        )
-        db.commit()
+        if db is not None:
+            source_status(
+                db,
+                "OpenStreetMap" if provider == "osm" else "Microsoft Footprints",
+                "connected",
+                f"Actual geographic lookup returned {len(features)} footprints",
+            )
+            db.commit()
         return result
     except (httpx.HTTPError, ValueError, KeyError, TypeError, OSError, ParseError, DefusedXmlException) as exc:
-        source_status(
-            db,
-            "OpenStreetMap" if provider == "osm" else "Microsoft Footprints",
-            "unavailable",
-            "Building lookup failed",
-        )
-        db.commit()
+        if db is not None:
+            source_status(
+                db,
+                "OpenStreetMap" if provider == "osm" else "Microsoft Footprints",
+                "unavailable",
+                "Building lookup failed",
+            )
+            db.commit()
         raise HTTPException(
             502, "Building provider unavailable; retry or register using a manually drawn polygon"
         ) from exc

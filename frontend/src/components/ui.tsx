@@ -322,9 +322,9 @@ function EvidenceValue({ value }: { value: unknown }) {
 export function InputError({ error }: { error: string | null }) {
   return error ? <Notice tone="error">{error}</Notice> : null
 }
-export function DataTable({ headings, children }: { headings: string[]; children: ReactNode }) {
+export function DataTable({ headings, children, label }: { headings: string[]; children: ReactNode; label?: string }) {
   return (
-    <div className="table-wrap">
+    <div className="table-wrap" tabIndex={0} role="region" aria-label={label ?? 'Data table'}>
       <table>
         <thead>
           <tr>

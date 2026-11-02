@@ -2,7 +2,16 @@
 
 Base path: `/api/v1`. The running API's `/docs` and `/openapi.json` are the authoritative request schemas. Most application JSON responses use `{ "data": ..., "meta": ... }`; errors use `{ "error": { "code": ..., "message": ..., "details": ... } }`. Validation errors omit original input values so passwords are not echoed.
 
-All property, forecast, modelling, observation, report and source-status endpoints require a signed-in user. Health and session bootstrap are public. Cookies are HTTP-only and SameSite Strict; Secure cookies are enabled in production. Browser requests use credentials and the same-origin proxy. State-changing requests require `X-CSRF-Token` obtained from the session endpoint and the matching cookie. Authorised origins are configured server-side.
+All private property, forecast, modelling, observation, report and source-status endpoints require a signed-in user. Health, session bootstrap and the isolated demonstration endpoints below are public. Cookies are HTTP-only and SameSite Strict; Secure cookies are enabled in production. Workspace browser requests use credentials and the same-origin proxy. State-changing workspace requests require `X-CSRF-Token` obtained from the session endpoint and the matching cookie. Authorised origins are configured server-side.
+
+## Public educational demonstration
+
+| Method/path | Input | Result |
+| --- | --- | --- |
+| POST `/demo/simulate` | Bounded profile/weather enums, rainfall, catchment, coefficients, tank, demand and illustrative budget | `data_kind: simulated_demonstration`, `persisted: false`; 48-hour deterministic model, storage alternatives and fictional community choices |
+| GET `/demo/footprints` | Finite WGS84 `latitude` (−85…85), `longitude` (−180…180) | Bounded actual OSM polygons, geodesic area, centroid, attribution and retrieval time; `data_kind: real_public_geography`, `water_inputs: simulated_unverified`, `persisted: false` |
+
+These endpoints omit authentication cookies, do not read or write private records, and create no session. Simulation is stateless and makes no external requests; public geography uses the existing bounded provider and process cache. Limits are 60 simulation requests and 6 footprint lookups/minute/IP in separate buckets. `422` identifies invalid inputs, `429` the rate limit and `502/503` unavailable geography. Missing outlines remain empty; no fictional building is inserted. See [demonstration contract](docs/DEMO_MODE.md).
 
 ## Authentication
 

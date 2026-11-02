@@ -74,7 +74,11 @@ async def security_and_limits(request: Request, call_next):
     ip = request.client.host if request.client else "unknown"
     path = request.url.path
     category = (
-        "auth"
+        "demo_map"
+        if path == "/api/v1/demo/footprints"
+        else "demo"
+        if path.startswith("/api/v1/demo/")
+        else "auth"
         if path.startswith("/api/v1/auth/") and request.method == "POST"
         else "expensive"
         if any(
@@ -83,7 +87,7 @@ async def security_and_limits(request: Request, call_next):
         )
         else "api"
     )
-    limit = 15 if category in {"auth", "expensive"} else 180
+    limit = 6 if category == "demo_map" else 60 if category == "demo" else 15 if category in {"auth", "expensive"} else 180
     key = (ip, category)
     bucket = requests_by_key[key]
     while bucket and instant - bucket[0] > 60:
@@ -180,6 +184,7 @@ def health():
 
 from app.analytics import router as analytics_router  # noqa: E402
 from app.api import router as core_router  # noqa: E402
+from app.demo_api import router as demo_router  # noqa: E402
 from app.location_api import router as location_router  # noqa: E402
 from app.operations_api import router as operations_router  # noqa: E402
 
@@ -187,6 +192,7 @@ app.include_router(core_router)
 app.include_router(analytics_router)
 app.include_router(operations_router)
 app.include_router(location_router)
+app.include_router(demo_router)
 
 from app.body_limit import BodyLimitMiddleware  # noqa: E402
 
