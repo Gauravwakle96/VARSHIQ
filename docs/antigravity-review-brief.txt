@@ -1,0 +1,7 @@
+Read-only engineering review for VARSHIQ. Do not edit, write, commit, install, deploy, message others or change configuration. Do not read .env, credential directories, unrelated projects or user settings. Keep the configured default model/provider and permission policy.
+
+Review ONLY backend/app/services/hydrology.py and backend/app/services/geometry.py, and their tests backend/tests/test_hydrology.py and test_geometry.py under C:/Users/gaura/projects/varshiq. Root is implementing other files in parallel; ignore them.
+
+Assess scientific mass balance, overflow/demand semantics, per-event first-flush carryover, future-window assumptions, units, NaN/infinity handling, timezone/DST issues, WGS84 geodesic area, polygon holes and storage optimisation limitations. The upstream methods/code were not copied and coefficients are site-supplied. Root executed 71 tests successfully. Do not claim engineering certification or tests you did not run.
+
+Return only actionable correctness findings with file/function evidence, severity, suggested correction and any missing validation. State if no concrete finding exists. This review does not authorise changes.

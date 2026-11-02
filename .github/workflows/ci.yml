@@ -1,0 +1,91 @@
+name: VARSHIQ validation
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run build
+      - run: npm audit --audit-level=moderate
+
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.13'
+          enable-cache: true
+      - run: uv sync --frozen --python 3.13
+      - run: uv run --frozen python -m ruff check app tests
+      - run: uv run --frozen python -m pytest --cov=app --cov-report=term-missing
+      - run: uv run --frozen python -m pip_audit --local --strict
+
+  postgis-migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: varshiq_test
+          POSTGRES_USER: varshiq_test
+          POSTGRES_PASSWORD: ci-ephemeral-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U varshiq_test -d varshiq_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+psycopg://varshiq_test:ci-ephemeral-test-only@localhost:5432/varshiq_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.13'
+      - run: uv sync --frozen --python 3.13
+      - run: uv run --frozen python -m alembic upgrade head
+      - run: uv run --frozen python ../.github/scripts/check-postgis.py
+      - run: uv run --frozen python -m alembic downgrade base
+      - run: uv run --frozen python -m alembic upgrade head
+      - run: uv run --frozen python ../.github/scripts/check-postgis.py
+
+  containers:
+    runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      POSTGRES_PASSWORD: ci-configuration-only
+      SERVER_SECRET: ci-configuration-only-secret-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose config --quiet
+      - run: docker compose build
+      - run: docker compose up -d --wait --wait-timeout 180
+      - run: python3 .github/scripts/check-container.py
+      - run: docker compose logs --no-color --tail 60
+        if: failure()
+      - run: docker compose down --volumes
+        if: always()

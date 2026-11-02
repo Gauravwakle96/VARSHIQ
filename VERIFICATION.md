@@ -1,0 +1,44 @@
+# Executed verification
+
+Date: 2026-11-02. Project: `C:/Users/gaura/projects/varshiq`. Native Windows; Node 24.14.1, npm 11.11.0, uv 0.12.13 and Python 3.13.15. Local SQLite test results and remote PostgreSQL/PostGIS acceptance are separate.
+
+| Check | Executed result |
+| --- | --- |
+| Backend Ruff: `ruff check app tests alembic` | PASS |
+| Backend: `pytest --cov=app --cov-report=term-missing` | 215 passed; 87% statement coverage; one upstream Starlette TestClient/httpx deprecation warning |
+| Locked installed Python environment: `pip_audit --progress-spinner off` | No known vulnerabilities reported |
+| Frontend `npm run lint` | PASS |
+| Frontend `npm run build` | PASS; TypeScript project checks and Vite production compilation |
+| Frontend `npm audit --audit-level=moderate` | 0 vulnerabilities reported |
+| Runtime frontend licence collection | 56 packages inspected; no missing root licence files |
+| Compose configuration with ephemeral check-only values | PASS; no real credential values were printed |
+| Deployment smoke/PostGIS scripts | Python compilation PASS; actual Docker execution requires a working engine or CI |
+| Browser `npm run test:e2e` | 2 expanded tests passed against an isolated SQLite database and real Open-Meteo/Photon requests, including PDF bytes and a historical community-budget submission |
+
+Backend tests cover provider validation/failure boundaries, geometry and coordinate transformations, timezone/tomorrow handling, dry gaps and event state, per-event diversion, losses, physical tank balance, storage optimisation, observation/calibration eligibility, permissions, provenance, migration upgrade/backfill/downgrade, UTC persistence and concurrent ledger submissions. Community selection is compared with exhaustive enumeration rather than implementation-mirroring assertions.
+
+## Live data-provider evidence
+
+The provider probe on this date retrieved distinct CSN/Mumbai/Pune coordinate forecasts with 168 hourly records and 7 daily records each; tomorrow was dynamically 2026-11-03. It retrieved 365 ERA5 daily records for CSN for 2025, 145 actual CSN OSM outlines, and Photon place matches for CSN/Pune. No probe created production properties or measurements. These results show access at retrieval time, not a future availability guarantee. Historical ERA5 is regional reanalysis, not rooftop measurements or official IMD observations.
+
+## Browser and rendered evidence
+
+Local artefacts are under ignored `artifacts/browser/`; Playwright failure traces/results use ignored `test-results/` and `playwright-report/`. Tests create clearly labelled synthetic properties only in a separate automated database.
+
+Executed checks include account creation, API and UI property registration, catchment evidence, live rainfall/provider attribution, WaterTwin balance, superseded-input history, assessment generation, apartment supply/consumption persistence, maintenance/quality persistence, live Pune location/map/weather preview, missing groundwater, provider failure, municipal permission feedback and keyboard menu focus restoration/reduced motion. Property views were checked at 390x844, 768x1024 and 1440x900 for horizontal overflow and axe WCAG2/2.1 AA violations; tested scans reported none. Screenshots were visually inspected; this does not establish conformance of every untested interaction.
+
+## Target acceptance
+
+- Native local app/API and provider access: VERIFIED by tests/probes above.
+- Docker engine on this Windows host: unavailable; WSL is not installed. No WSL or permission configuration was changed.
+- PostgreSQL/PostGIS deployment: NOT PERFORMED locally. CI defines actual migration round trips and native geometry/SRID/area checks.
+- Compose images/health/API: NOT PERFORMED locally. CI defines image builds and an isolated smoke test of frontend, PostgreSQL API, geometry, CSRF and owner isolation.
+- GitHub Actions: pending first push and inspection; workflow existence is not a passed run.
+- Public HTTPS deployment/backup restore: NOT PERFORMED; requires the selected hosting environment and target verification.
+- Actual residential/commercial/community field pilot: NOT PERFORMED; requires owner authorisation and measurements.
+- Restricted IMD/GOBS/groundwater datasets and optional paid AI/commercial provider plans: no operational access is claimed without corresponding inputs.
+- Structural/recharge/quality certification and validated material defaults: not established. Site parameters/sources are mandatory; advice remains preliminary where field evidence is missing.
+
+The software does not invent properties, rainfall observations, collected water, aquifers or trained models to fill these gaps. Statistical maintenance/calibration rules are labelled as screening/parameter estimation. Source notices and independently applicable dataset terms remain part of deployment obligations.
+
+The local ECC UI evidence checker passed for `artifacts/browser/ui-evidence.json` after screenshots were inspected. A local staged-file review checked credential patterns and excluded databases, uploads, dependencies and build/test artefacts. These checks do not guarantee the absence of every possible vulnerability.

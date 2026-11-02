@@ -1,0 +1,309 @@
+{
+  "districts": [
+    {
+      "id": "IN-MH-AHILYANAGAR",
+      "name": "Ahilyanagar",
+      "source_name": "Ahilyanagar",
+      "aliases": [
+        "Ahmednagar"
+      ],
+      "division": "Nashik",
+      "official_website": "https://ahmednagar.nic.in"
+    },
+    {
+      "id": "IN-MH-AKOLA",
+      "name": "Akola",
+      "source_name": "Akola",
+      "aliases": [],
+      "division": "Amaravati",
+      "official_website": "https://akola.gov.in"
+    },
+    {
+      "id": "IN-MH-AMRAVATI",
+      "name": "Amravati",
+      "source_name": "Amravati",
+      "aliases": [],
+      "division": "Amaravati",
+      "official_website": "https://amravati.gov.in/"
+    },
+    {
+      "id": "IN-MH-BEED",
+      "name": "Beed",
+      "source_name": "Beed",
+      "aliases": [],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://beed.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-BHANDARA",
+      "name": "Bhandara",
+      "source_name": "Bhandara",
+      "aliases": [],
+      "division": "Nagpur",
+      "official_website": "https://bhandara.gov.in"
+    },
+    {
+      "id": "IN-MH-BULDHANA",
+      "name": "Buldhana",
+      "source_name": "Buldhana",
+      "aliases": [],
+      "division": "Amaravati",
+      "official_website": "https://buldhana.nic.in/en/"
+    },
+    {
+      "id": "IN-MH-CHANDRAPUR",
+      "name": "Chandrapur",
+      "source_name": "Chandrapur",
+      "aliases": [],
+      "division": "Nagpur",
+      "official_website": "https://chanda.nic.in/"
+    },
+    {
+      "id": "IN-MH-CHHATRAPATI-SAMBHAJINAGAR",
+      "name": "Chhatrapati Sambhajinagar",
+      "source_name": "Chhatrapati Sambhaji Nagar",
+      "aliases": [
+        "Chhatrapati Sambhaji Nagar",
+        "Aurangabad",
+        "CSN"
+      ],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://chhatrapatisambhajinagar.maharashtra.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-DHARASHIV",
+      "name": "Dharashiv",
+      "source_name": "Dharashiv",
+      "aliases": [
+        "Osmanabad"
+      ],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://dharashiv.maharashtra.gov.in/"
+    },
+    {
+      "id": "IN-MH-DHULE",
+      "name": "Dhule",
+      "source_name": "Dhule",
+      "aliases": [],
+      "division": "Nashik",
+      "official_website": "https://dhule.gov.in/"
+    },
+    {
+      "id": "IN-MH-GADCHIROLI",
+      "name": "Gadchiroli",
+      "source_name": "Gadchiroli",
+      "aliases": [],
+      "division": "Nagpur",
+      "official_website": "https://gadchiroli.gov.in/"
+    },
+    {
+      "id": "IN-MH-GONDIA",
+      "name": "Gondia",
+      "source_name": "Gondia",
+      "aliases": [],
+      "division": "Nagpur",
+      "official_website": "https://gondia.gov.in/"
+    },
+    {
+      "id": "IN-MH-HINGOLI",
+      "name": "Hingoli",
+      "source_name": "Hingoli",
+      "aliases": [],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://hingoli.nic.in"
+    },
+    {
+      "id": "IN-MH-JALGAON",
+      "name": "Jalgaon",
+      "source_name": "Jalgaon",
+      "aliases": [],
+      "division": "Nashik",
+      "official_website": "https://jalgaon.gov.in/"
+    },
+    {
+      "id": "IN-MH-JALNA",
+      "name": "Jalna",
+      "source_name": "Jalna",
+      "aliases": [],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://jalna.gov.in/"
+    },
+    {
+      "id": "IN-MH-KOLHAPUR",
+      "name": "Kolhapur",
+      "source_name": "Kolhapur",
+      "aliases": [],
+      "division": "Pune",
+      "official_website": "https://kolhapur.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-LATUR",
+      "name": "Latur",
+      "source_name": "Latur",
+      "aliases": [],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://latur.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-MUMBAI-CITY",
+      "name": "Mumbai City",
+      "source_name": "Mumbai City",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://mumbaicity.gov.in/"
+    },
+    {
+      "id": "IN-MH-MUMBAI-SUBURBAN",
+      "name": "Mumbai Suburban",
+      "source_name": "Mumbai Suburban",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://mumbaisuburban.gov.in/"
+    },
+    {
+      "id": "IN-MH-NAGPUR",
+      "name": "Nagpur",
+      "source_name": "Nagpur",
+      "aliases": [],
+      "division": "Nagpur",
+      "official_website": "https://nagpur.gov.in/"
+    },
+    {
+      "id": "IN-MH-NANDED",
+      "name": "Nanded",
+      "source_name": "Nanded",
+      "aliases": [],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://nanded.gov.in/"
+    },
+    {
+      "id": "IN-MH-NANDURBAR",
+      "name": "Nandurbar",
+      "source_name": "Nandurbar",
+      "aliases": [],
+      "division": "Nashik",
+      "official_website": "https://nandurbar.gov.in/"
+    },
+    {
+      "id": "IN-MH-NASHIK",
+      "name": "Nashik",
+      "source_name": "Nashik",
+      "aliases": [],
+      "division": "Nashik",
+      "official_website": "https://nashik.gov.in/"
+    },
+    {
+      "id": "IN-MH-PALGHAR",
+      "name": "Palghar",
+      "source_name": "Palghar",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://palghar.gov.in/"
+    },
+    {
+      "id": "IN-MH-PARBHANI",
+      "name": "Parbhani",
+      "source_name": "Parbhani",
+      "aliases": [],
+      "division": "Chhatrapati Sambhaji Nagar",
+      "official_website": "https://parbhani.gov.in/"
+    },
+    {
+      "id": "IN-MH-PUNE",
+      "name": "Pune",
+      "source_name": "Pune",
+      "aliases": [],
+      "division": "Pune",
+      "official_website": "https://pune.gov.in/"
+    },
+    {
+      "id": "IN-MH-RAIGAD",
+      "name": "Raigad",
+      "source_name": "Raigad",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://raigad.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-RATNAGIRI",
+      "name": "Ratnagiri",
+      "source_name": "Ratnagiri",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://ratnagiri.gov.in/"
+    },
+    {
+      "id": "IN-MH-SANGLI",
+      "name": "Sangli",
+      "source_name": "Sangli",
+      "aliases": [],
+      "division": "Pune",
+      "official_website": "https://sangli.nic.in/"
+    },
+    {
+      "id": "IN-MH-SATARA",
+      "name": "Satara",
+      "source_name": "Satara",
+      "aliases": [],
+      "division": "Pune",
+      "official_website": "https://www.satara.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-SINDHUDURG",
+      "name": "Sindhudurg",
+      "source_name": "Sindhudurg",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://sindhudurg.nic.in/en/"
+    },
+    {
+      "id": "IN-MH-SOLAPUR",
+      "name": "Solapur",
+      "source_name": "Solapur",
+      "aliases": [],
+      "division": "Pune",
+      "official_website": "https://solapur.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-THANE",
+      "name": "Thane",
+      "source_name": "Thane",
+      "aliases": [],
+      "division": "Konkan",
+      "official_website": "https://thane.nic.in"
+    },
+    {
+      "id": "IN-MH-WARDHA",
+      "name": "Wardha",
+      "source_name": "Wardha",
+      "aliases": [],
+      "division": "Nagpur",
+      "official_website": "https://wardha.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-WASHIM",
+      "name": "Washim",
+      "source_name": "Washim",
+      "aliases": [],
+      "division": "Amaravati",
+      "official_website": "https://washim.gov.in/en/"
+    },
+    {
+      "id": "IN-MH-YAVATMAL",
+      "name": "Yavatmal",
+      "source_name": "Yavatmal",
+      "aliases": [],
+      "division": "Amaravati",
+      "official_website": "https://yavatmal.gov.in/en/"
+    }
+  ],
+  "source": "https://maharashtra.gov.in/Site/1529/Districts",
+  "licence": "Government of Maharashtra portal Copyright Policy: accurate, nonmisleading reproduction with prominent acknowledgement; third-party assets excluded",
+  "policy_url": "https://maharashtra.gov.in/Site/1383/Disclaimer-and-Policies",
+  "retrieved_at": "2026-11-02T10:00:46.113086+00:00",
+  "source_sha256": "b4aa0f132d56e5ff54d7d9f6bc82ea38001b68ada7db7e33f859e1e2dd52c258",
+  "limitations": [
+    "Directory names and official website links only; no district boundaries, coordinates or village records.",
+    "Directory IDs are VARSHIQ identifiers, not official LGD/administrative boundary IDs."
+  ]
+}

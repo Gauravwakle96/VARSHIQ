@@ -1,0 +1,75 @@
+# Data provenance and confidence
+
+VARSHIQ keeps source data, user measurements and model results separate. A missing value is not zero. A forecasted collection amount is not actual harvested water. Test fixtures are restricted to isolated automated-test databases and are labelled as synthetic.
+
+## Evidence categories
+
+| Category | Meaning | Storage/display boundary |
+| --- | --- | --- |
+| Forecast | A provider's estimate for a future interval | Provider, requested/model coordinates, retrieval time, issue time when supplied, timezone, original/normalised interval and resolution |
+| Historical reanalysis | Model-assimilated regional weather reconstruction | ERA5 provider/model, daily date coverage and 0.25° regional resolution; separate from IMD/gauge observations |
+| Historical gridded observation | Approved IMD regional rainfall grid | IMD source, nearest grid cell, date coverage and 0.25° resolution; separate dataset conditions |
+| User-entered information | Owner-supplied catchment, demand, tank or coefficient assumption | Responsible user, input/source, recording time and explicit estimate status |
+| Geospatial estimate | OSM/Microsoft/manual geometry and derived footprint area | Source identifier/URI, CRS EPSG:4326, acquisition time and geodesic method |
+| Owner-recorded field evidence | A supplied measurement method, date and evidence note | `field_verified` is owner-recorded evidence, not independent engineering certification |
+| Deterministic model estimate | Runoff, diversion, storage, supply, overflow or sizing result | Input/forecast snapshots, calculation assumptions and limitations; never inserted as an actual observation |
+
+## Building records
+
+Registered properties receive unique identifiers. A supplied polygon is validated and its ellipsoidal area calculated with Shapely/PyProj. Polygon holes reduce footprint area. A footprint is not automatically used or verified as connected rooftop catchment. The owner enters effective catchment separately and supplies evidence for field verification.
+
+OSM lookup records the original way identifier and source URL. Microsoft extraction records tile/release source and available height/detection confidence. Missing `-1` values remain unavailable. Microsoft detection confidence relates to footprint recognition; it does not quantify usable roof area or height accuracy. Manual corrections are separate user information.
+
+Private property geometry and photos require authorised access. Photos are re-encoded to strip EXIF/GPS metadata. Municipal outputs use opt-in aggregates and do not disclose private geometries.
+
+## Forecast intervals and caching
+
+Open-Meteo's precipitation, rain and showers describe the preceding hour. VARSHIQ converts source Unix timestamps to elapsed-hour interval starts, retains the source interval end and reports in the property's IANA timezone. Amount and probability remain separate. Liquid rain plus showers drives rooftop inflow; total precipitation can include snow water equivalent.
+
+Tomorrow is derived from the current date in the property timezone, not a hardcoded date. Retrieval time is available; this endpoint does not supply a model issue timestamp, so `issue_time` remains null. Forecast-model resolution is regional and model-dependent; the ensemble probability grid is approximately 27 km. These values do not certify rainfall at an individual roof.
+
+Forecast records are immutable. Cache freshness and provider unavailability are displayed. A stale response is explicitly labelled, and its retained date/coverage must be checked. Forecast accuracy uses a version retrieved before the measured interval; later revised forecasts are not retrospectively scored as if they were earlier predictions.
+
+## WaterTwin time boundary
+
+The model begins at the next complete property-local hour. It excludes elapsed forecast rainfall and demand rather than replaying the day onto a current tank reading. The partially elapsed current hour is omitted and the entered starting volume is carried as an estimate; this is explicit in the calculation assumptions. A stale reading remains a limitation.
+
+First flush is applied per modelled rainfall event, with diversion remaining across wet hours and midnight. The six-hour dry-gap threshold is a configurable domain assumption, not a universal hydrological constant. Unknown antecedent diversion results in a disclosed conservative initial-event assumption. Simulated diversion/event state does not establish that physical first flush actually occurred.
+
+Demand is constrained by available water; unmet demand and overflow are recorded separately. The balance is:
+
+```text
+initial storage + net inflow = ending storage + supplied demand + overflow
+```
+
+## Historical processing and sizing
+
+Open-Meteo Archive requests a consistent ERA5 model for the selected period. A complete consecutive daily series is required for sizing. Missing or invalid rainfall is rejected rather than filled with zeros. Annual completeness is stated; monthly averages use complete months. Anomalies are relative to complete years in the selected period and are not automatically a recognised long-term climate normal.
+
+The optional IMDLIB adapter reads approved local files using `open_data`; it does not invoke the nationwide downloader. The nearest grid cell and resolution are retained; missing IMD rainfall is not converted to zero. Optional Parquet output contains only the processed regional extract and is ignored by git.
+
+Daily totals cannot identify intraday event gaps. Historical optimisation therefore labels its wet-day first-flush approximation, empty initial historical tank assumption, capacity-selection heuristic, demand and user-supplied indicative costs. Total roof runoff is not equivalent to water saved: demand supplied is reported separately from captured inflow, overflow and unmet demand.
+
+## Actual observations and calibration
+
+Rainfall/collection/diversion observations require measurement intervals and timezone-aware timestamps. Storage observations require physical limits. A tank rise alone is not measured collection when consumption, transfers or leakage occurred during the interval.
+
+Calibration eligibility requires sufficiently many reliable, independent paired intervals and suitable rooftop evidence. Parameters and verification history must remain consistent with the observations. A deterministic efficiency proposal is not labelled a trained AI model. No calibration history is fabricated before observations exist.
+
+## Groundwater, soil and recharge
+
+No aquifer record is inferred or fabricated. Source coverage, resolution, date, availability and verification must be known before such data support decisions. The current recommendation layer reports missing field information and requires professional assessment for recharge/structural advice. Satellite imagery alone does not establish recharge suitability.
+
+## Reports and locality totals
+
+Reports retain property/calculation provenance and explicitly disclose missing or superseded evidence. Locality forecast totals must compare compatible future intervals and current property inputs, with excluded/missing property coverage stated. Aggregation contains genuine registered records only.
+
+## Optional AI
+
+The assistant retrieves authorised backend information before answering. All physical calculations remain deterministic. Server credentials never appear in the frontend bundle. LLM-generated material is not accepted as a source for roof dimensions, rainfall, tank readings, groundwater or engineering arithmetic; deterministic operation remains available without an LLM.
+
+## Statewide locations and daily operations
+
+See [location provenance](docs/LOCATION_DATA.md) and [water operations](docs/WATER_OPERATIONS.md). All persisted datetimes are normalised to UTC, including SQLite fallback storage, and displayed in the selected property timezone. The imported official district directory contains factual names/links, not properties or measured rooftop data. Geocoder coordinates/addresses remain estimates requiring confirmation.
+
+Water-source, consumption, maintenance and quality-test records keep user/method/date/reliability. Exact community investment selection uses actual quotations and simulated historical additional supply, not trained synthetic benefit models. Superseded/stale WaterTwin predictions are flagged and retained as history.
