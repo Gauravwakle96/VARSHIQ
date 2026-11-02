@@ -13,7 +13,7 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -31,7 +31,7 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.12.13'
@@ -62,7 +62,7 @@ jobs:
       APP_ENV: test
       DATABASE_URL: postgresql+psycopg://varshiq_test:ci-ephemeral-test-only@localhost:5432/varshiq_test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v6
         with:
           version: '0.12.13'
@@ -80,7 +80,7 @@ jobs:
       POSTGRES_PASSWORD: ci-configuration-only
       SERVER_SECRET: ci-configuration-only-secret-at-least-32-characters
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: docker compose config --quiet
       - run: docker compose build
       - run: docker compose up -d --wait --wait-timeout 180
